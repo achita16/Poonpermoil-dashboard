@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="th"><head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Calculate oil order</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="styles-extra.css"><link rel="stylesheet" href="styles-light.css">
+</head><body><main class="page">
+
+  <header class="masthead">
+    <div>
+      <p class="eyebrow">POONPERM OIL LTD.</p>
+      <h1>Calculate oil order</h1>
+      <p class="subtitle">วางแผนการสั่งน้ำมันในมุมมองเดียว</p>
+    </div>
+    <div class="controls">
+      <a href="https://eservice.pttor.com/PTTeOrdering/jsp/signOnNew.jsp" target="_blank" class="btn-order">🛒 สั่งน้ำมัน PTT</a>
+      <button id="refreshBtn">รีเฟรชข้อมูล</button>
+      <span class="data-status"><i></i><span id="dataStatus">ข้อมูลตัวอย่าง</span></span>
+    </div>
+  </header>
+
+  <section id="productColumns" class="product-columns"></section>
+
+  <section class="delivery">
+    <div class="delivery-head">
+      <div><span class="mini-label">DELIVERY SETUP</span><label class="truck-select">ขนาดรถ <select id="truckSize"><option value="30000" selected>รถใหญ่ · 30,000 ลิตร · 10 ช่อง</option><option value="20000">รถเล็ก · 20,000 ลิตร · 5 ช่อง</option></select></label></div>
+      <div class="capacity"><span>รวมที่เลือก</span><strong id="loadTotal">0 ลิตร</strong><small id="capacityRemaining">เหลือ 30,000 ลิตร</small></div>
+    </div>
+    <div class="truck-title"><span id="truckTypeLabel">รถใหญ่</span> · <b id="truckSlotLabel">10 ช่อง</b> · รวมทั้งคัน <span id="truckCapacityLabel">30,000 ลิตร</span></div>
+    <div class="truck-stage"><img src="tanker-truck.png" alt="รถขนส่งน้ำมันแบบแทงก์หลายช่อง"><div id="loadSlots" class="load-slots"></div></div>
+  </section>
+
+  <section id="afterDelivery" class="after-delivery"></section>
+  <section class="formula-note">StD ปัจจุบัน = (คงเหลือ − Dead stock 12% ของความจุถัง) ÷ ยอดขายเฉลี่ยที่เลือก · StD ใหม่ = ((คงเหลือ + Load) − Dead stock 12% ของความจุถัง) ÷ ยอดขายเฉลี่ยที่เลือก</section>
+
+  <!-- DATA PANELS: WTI + Facebook -->
+  <section class="data-panels">
+    <article class="panel-wti">
+      <h2>WTI Crude Oil</h2>
+      <div class="tradingview-widget-container">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
+        {
+          "symbols": [["USOIL|1D"]],
+          "chartOnly": false,
+          "width": "100%",
+          "height": 300,
+          "locale": "th",
+          "colorTheme": "light",
+          "autosize": false,
+          "showVolume": false,
+          "hideDateRanges": false,
+          "scalePosition": "right",
+          "scaleMode": "Normal",
+          "fontFamily": "DM Sans, Noto Sans Thai, sans-serif",
+          "fontSize": "13",
+          "noTimeScale": false,
+          "valuesTracking": "1",
+          "chartType": "area",
+          "lineColor": "#007aff",
+          "topColor": "#007aff20",
+          "bottomColor": "#007aff00"
+        }
+        </script>
+      </div>
+    </article>
+    <article class="panel-fb">
+      <h2>ข่าวน้ำมัน · Oil Price Report</h2>
+      <div id="fb-root"></div>
+      <script async defer crossorigin="anonymous"
+        src="https://connect.facebook.net/th_TH/sdk.js#xfbml=1&version=v19.0">
+      </script>
+      <div class="fb-page"
+        data-href="https://www.facebook.com/OilPriceReport"
+        data-tabs="timeline"
+        data-width="500"
+        data-height="400"
+        data-small-header="true"
+        data-adapt-container-width="true"
+        data-hide-cover="false"
+        data-show-facepile="false">
+      </div>
+    </article>
+  </section>
+
+  <!-- NEWS SECTION -->
+  <section class="news-section">
+    <div class="news-header">
+      <div>
+        <span class="mini-label">OIL NEWS</span>
+        <h2 class="news-title">ข่าวราคาน้ำมันล่าสุด</h2>
+      </div>
+      <div class="news-controls">
+        <select id="newsLang">
+          <option value="th">🇹🇭 ภาษาไทย</option>
+          <option value="en">🇺🇸 English</option>
+        </select>
+        <button id="fetchNewsBtn">📰 ดึงข่าวล่าสุด</button>
+      </div>
+    </div>
+    <div id="newsGrid" class="news-grid">
+      <div class="news-placeholder">
+        <span>กด "ดึงข่าวล่าสุด" เพื่อโหลดบทความข่าวน้ำมัน</span>
+      </div>
+    </div>
+  </section>
+
+</main>
+<template id="productTemplate"><article class="product"><div class="product-code"></div><div class="tank-wrap"><div class="tank"><div class="tank-fill"></div></div><span class="tank-percent"></span></div><div class="sales-lines"><label>ยอดขายที่ใช้คำนวณ (เลือกช่วงวันที่)<div class="range-inputs"><input type="date" class="range-start"><span class="range-sep">ถึง</span><input type="date" class="range-end"></div></label><p class="selected-sales"><b></b><span> ลิตร / วัน</span></p><p class="dead-stock">Dead stock 12%: <b></b> ลิตร</p></div><label class="remaining-field">คงเหลือ <input class="remaining" type="number" min="0" step="100"><span>ลิตร</span></label><p class="stock-current">StD<small>(ปัจจุบัน)</small> <b></b></p></article></template>
+<script src="app-2.js"></script>
+
+<script>
+// ======= NEWS RSS FETCH =======
+const RSS_FEEDS = {
+  th: "https://news.google.com/rss/search?q=ราคาน้ำมัน+WTI+น้ำมันดิบ&hl=th&gl=TH&ceid=TH:th",
+  en: "https://news.google.com/rss/search?q=WTI+crude+oil+price+OPEC&hl=en-US&gl=US&ceid=US:en"
+};
+const RSS_PROXY = "https://api.rss2json.com/v1/api.json?rss_url=";
+
+async function fetchNews() {
+  const btn = document.getElementById("fetchNewsBtn");
+  const grid = document.getElementById("newsGrid");
+  const lang = document.getElementById("newsLang").value;
+
+  btn.disabled = true;
+  btn.textContent = "⏳ กำลังโหลด…";
+  grid.innerHTML = `<div class="news-placeholder"><span>กำลังดึงข่าว…</span></div>`;
+
+  try {
+    const url = RSS_PROXY + encodeURIComponent(RSS_FEEDS[lang]);
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.items || data.items.length === 0) throw new Error("ไม่พบข่าว");
+
+    const items = data.items.slice(0, 9); // แสดงสูงสุด 9 ข่าว
+    grid.innerHTML = items.map(item => {
+      const date = new Date(item.pubDate);
+      const dateStr = date.toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
+      const timeStr = date.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
+      // ตัดข้อความ description ให้สั้น
+      const desc = item.description
+        ? item.description.replace(/<[^>]*>/g, "").slice(0, 120) + "…"
+        : "";
+      // แหล่งข่าว: ดึงจาก source หรือ title
+      const source = item.source || "";
+      return `
+        <a class="news-card" href="${item.link}" target="_blank" rel="noopener">
+          <div class="news-card-body">
+            <p class="news-source">${source}</p>
+            <p class="news-headline">${item.title}</p>
+            <p class="news-desc">${desc}</p>
+          </div>
+          <div class="news-card-foot">
+            <span class="news-date">${dateStr} · ${timeStr}</span>
+            <span class="news-read">อ่านต่อ →</span>
+          </div>
+        </a>`;
+    }).join("");
+
+  } catch (err) {
+    grid.innerHTML = `<div class="news-placeholder"><span>⚠️ โหลดข่าวไม่สำเร็จ ลองใหม่อีกครั้ง</span></div>`;
+  }
+
+  btn.disabled = false;
+  btn.textContent = "📰 ดึงข่าวล่าสุด";
+}
+
+document.getElementById("fetchNewsBtn").addEventListener("click", fetchNews);
+// โหลดข่าวอัตโนมัติตอนเปิดหน้า
+fetchNews();
+</script>
+
+</body></html>

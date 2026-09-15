@@ -1,16 +1,9 @@
 // ============================================================
-// POONPERM OIL LTD.
-// Calculate Oil Order
+// POONPERM OIL LTD. - Calculate Oil Order
 // ============================================================
 
-// ============================================================
-// GOOGLE SHEETS
-// ============================================================
-
-// URL Google Sheets แบบ CSV
 const SHEET_CSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1USobfqcmWLx3rlCr0ld-bSvAxjtQtjMn2yg2zFzhqsbv-Vz04v5I0dBT8ipsIA/pub?output=csv";
-
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1USobfqcmWLx3rlCr0ld-bSvAxjtQtjMn2yg2zFzhqsbv-Vz04v5I0dBT8ipsIA/pub?output=csv";
 
 // ============================================================
 // PRODUCTS
@@ -18,1474 +11,917 @@ const SHEET_CSV_URL =
 
 const PRODUCTS = [
   {
-    id: "g95",
-    code: "T01 GASOHOL 95",
-    color: "#f5b874",
-    newColor: "#f6d58f",
-    remaining: 8200,
-    capacity: 20000,
-    rangeStart: null,
-    rangeEnd: null
+    id:"g95",
+    code:"T01 GASOHOL 95",
+    color:"#f5b874",
+    newColor:"#f6d58f",
+    remaining:8200,
+    capacity:20000,
+    rangeStart:null,
+    rangeEnd:null
   },
-
   {
-    id: "g91",
-    code: "T02 GASOHOL 91",
-    color: "#86d4a6",
-    newColor: "#f6d58f",
-    remaining: 6400,
-    capacity: 10000,
-    rangeStart: null,
-    rangeEnd: null
+    id:"g91",
+    code:"T02 GASOHOL 91",
+    color:"#86d4a6",
+    newColor:"#f6d58f",
+    remaining:6400,
+    capacity:10000,
+    rangeStart:null,
+    rangeEnd:null
   },
-
   {
-    id: "e20",
-    code: "T03 E20",
-    color: "#b5dc8e",
-    newColor: "#f6d58f",
-    remaining: 5100,
-    capacity: 10000,
-    rangeStart: null,
-    rangeEnd: null
+    id:"e20",
+    code:"T03 E20",
+    color:"#b5dc8e",
+    newColor:"#f6d58f",
+    remaining:5100,
+    capacity:10000,
+    rangeStart:null,
+    rangeEnd:null
   },
-
   {
-    id: "diesel",
-    code: "T04 DIESEL",
-    color: "#83c9eb",
-    newColor: "#f6d58f",
-    remaining: 12400,
-    capacity: 30000,
-    rangeStart: null,
-    rangeEnd: null
+    id:"diesel",
+    code:"T04 DIESEL",
+    color:"#83c9eb",
+    newColor:"#f6d58f",
+    remaining:12400,
+    capacity:30000,
+    rangeStart:null,
+    rangeEnd:null
   }
 ];
-
 
 // ============================================================
 // DEMO SALES
 // ============================================================
 
 const demoSales = {
-  g95: 1140,
-  g91: 820,
-  e20: 610,
-  diesel: 1870
+  g95:1140,
+  g91:820,
+  e20:610,
+  diesel:1870
 };
 
 let salesRows = [];
 
+// ============================================================
+// SHARED DATE RANGE
+// ============================================================
+
+let useSharedRange = false;
+let sharedRangeStart = null;
+let sharedRangeEnd = null;
 
 // ============================================================
 // TRUCK
 // ============================================================
 
 const TRUCKS = {
-
-  // รถ 20,000 ลิตร
-  // 5 ช่อง
-  // แต่ละช่อง 3,000 หรือ 4,000 ลิตร
-
-  20000: {
-    name: "รถเล็ก",
-    slots: 5
+  20000:{
+    name:"รถเล็ก",
+    slots:5
   },
-
-  // เก็บไว้สำหรับอนาคต
-  30000: {
-    name: "รถใหญ่",
-    slots: 10
+  30000:{
+    name:"รถใหญ่",
+    slots:10
   }
 };
 
-
-// ============================================================
-// DEFAULT TRUCK = 20,000 L
-// ============================================================
-
 let loadConfig = Array.from(
-  { length: 5 },
-  (_, index) => ({
-    product:
-      PRODUCTS[
-        index % PRODUCTS.length
-      ].id,
-
-    litres: 0
+  {length:5},
+  (_,index)=>({
+    product:PRODUCTS[index % PRODUCTS.length].id,
+    litres:0
   })
 );
-
 
 // ============================================================
 // HELPERS
 // ============================================================
 
 const fmt = value =>
-  new Intl.NumberFormat("en-US", {
-    maximumFractionDigits: 0
-  }).format(
-    Number(value) || 0
-  );
+  new Intl.NumberFormat("en-US",{
+    maximumFractionDigits:0
+  }).format(Number(value)||0);
 
-
-const num = value =>
-  Number(value) || 0;
-
+const num = value => Number(value)||0;
 
 // ============================================================
 // DATE
 // ============================================================
 
-function latestDataDate() {
-
-  if (!salesRows.length) {
-    return new Date();
-  }
+function latestDataDate(){
+  if(!salesRows.length) return new Date();
 
   return salesRows.reduce(
-    (max, row) => {
-
-      const d =
-        new Date(row.date);
-
-      return d > max
-        ? d
-        : max;
-
+    (max,row)=>{
+      const d=new Date(row.date);
+      return d>max?d:max;
     },
-    new Date(
-      salesRows[0].date
-    )
+    new Date(salesRows[0].date)
   );
 }
 
-
-function toDateInputValue(date) {
-
-  return date
-    .toISOString()
-    .slice(0, 10);
+function toDateInputValue(date){
+  return date.toISOString().slice(0,10);
 }
-
 
 // ============================================================
 // DEFAULT DATE RANGE
 // ============================================================
 
-function applyDefaultRanges() {
+function applyDefaultRanges(){
+  if(!salesRows.length) return;
 
-  if (!salesRows.length) {
-    return;
-  }
+  const maxDate=latestDataDate();
+  const start=new Date(maxDate);
 
-  const maxDate =
-    latestDataDate();
+  start.setDate(start.getDate()-6);
 
-  const defaultStart =
-    new Date(maxDate);
+  PRODUCTS.forEach(product=>{
+    if(!product.rangeStart)
+      product.rangeStart=toDateInputValue(start);
 
-  defaultStart.setDate(
-    defaultStart.getDate() - 6
-  );
+    if(!product.rangeEnd)
+      product.rangeEnd=toDateInputValue(maxDate);
+  });
 
-  PRODUCTS.forEach(
-    product => {
+  // ค่าเริ่มต้นของ Shared Range ใช้จาก T01
+  if(!sharedRangeStart)
+    sharedRangeStart=PRODUCTS[0].rangeStart;
 
-      if (!product.rangeStart) {
-
-        product.rangeStart =
-          toDateInputValue(
-            defaultStart
-          );
-      }
-
-      if (!product.rangeEnd) {
-
-        product.rangeEnd =
-          toDateInputValue(
-            maxDate
-          );
-      }
-    }
-  );
+  if(!sharedRangeEnd)
+    sharedRangeEnd=PRODUCTS[0].rangeEnd;
 }
-
 
 // ============================================================
 // AVERAGE SALES
 // ============================================================
 
-function averageSales(id) {
+function averageSales(id){
 
-  // ถ้าไม่มีข้อมูล Google Sheets
-  // ใช้ Demo Sales
+  if(!salesRows.length)
+    return demoSales[id]||0;
 
-  if (!salesRows.length) {
+  const product=PRODUCTS.find(p=>p.id===id);
 
-    return (
-      demoSales[id] || 0
-    );
-  }
+  if(!product) return 0;
 
+  const startValue=
+    useSharedRange
+      ? sharedRangeStart
+      : product.rangeStart;
 
-  const product =
-    PRODUCTS.find(
-      item =>
-        item.id === id
-    );
+  const endValue=
+    useSharedRange
+      ? sharedRangeEnd
+      : product.rangeEnd;
 
+  const start=startValue
+    ? new Date(startValue)
+    : null;
 
-  if (!product) {
-    return 0;
-  }
+  const end=endValue
+    ? new Date(endValue)
+    : null;
 
+  const rows=salesRows.filter(row=>{
+    if(row.product!==id) return false;
 
-  const start =
-    product.rangeStart
-      ? new Date(
-          product.rangeStart
-        )
-      : null;
+    const d=new Date(row.date);
 
+    if(start && d<start) return false;
+    if(end && d>end) return false;
 
-  const end =
-    product.rangeEnd
-      ? new Date(
-          product.rangeEnd
-        )
-      : null;
+    return true;
+  });
 
+  if(!rows.length) return 0;
 
-  const rows =
-    salesRows.filter(
-      row => {
-
-        if (
-          row.product !== id
-        ) {
-          return false;
-        }
-
-
-        const d =
-          new Date(row.date);
-
-
-        if (
-          start &&
-          d < start
-        ) {
-          return false;
-        }
-
-
-        if (
-          end &&
-          d > end
-        ) {
-          return false;
-        }
-
-
-        return true;
-      }
-    );
-
-
-  if (!rows.length) {
-    return 0;
-  }
-
-
-  return (
-    rows.reduce(
-      (sum, row) =>
-        sum + num(row.litres),
-      0
-    ) / rows.length
-  );
+  return rows.reduce(
+    (sum,row)=>sum+num(row.litres),
+    0
+  )/rows.length;
 }
 
-
 // ============================================================
-// PRODUCT LOAD
+// LOAD
 // ============================================================
 
-function productLoad(id) {
-
+function productLoad(id){
   return loadConfig
-    .filter(
-      item =>
-        item.product === id
-    )
+    .filter(item=>item.product===id)
     .reduce(
-      (sum, item) =>
-        sum + num(item.litres),
+      (sum,item)=>sum+num(item.litres),
       0
     );
 }
-
 
 // ============================================================
 // DEAD STOCK
 // ============================================================
 
-function deadStock(product) {
-
-  return (
-    product.capacity * 0.12
-  );
+function deadStock(product){
+  return product.capacity*0.12;
 }
-
 
 // ============================================================
 // STOCK DAY
 // ============================================================
 
-function stockDay(
-  available,
-  sales
-) {
-
-  if (!sales) {
-    return 0;
-  }
-
-  return (
-    Math.max(
-      available,
-      0
-    ) / sales
-  );
+function stockDay(available,sales){
+  if(!sales) return 0;
+  return Math.max(available,0)/sales;
 }
 
-
 // ============================================================
-// CREATE NEW TANK FILL
+// SHARED DATE UI
 // ============================================================
 
-function ensureNewTankFill(card) {
+function renderSharedRange(){
 
-  const tank =
-    card.querySelector(
-      ".tank"
-    );
+  const area=document.querySelector("#productColumns");
+  if(!area) return;
 
+  let box=document.querySelector("#sharedRange");
 
-  if (!tank) {
-    return null;
+  if(!box){
+
+    box=document.createElement("div");
+    box.id="sharedRange";
+
+    box.innerHTML=`
+      <div class="shared-range-toggle">
+        <label>
+          <input type="checkbox" id="sharedRangeCheck">
+          ใช้ช่วงวันที่เดียวกันทุกถัง
+        </label>
+      </div>
+
+      <div class="shared-range-inputs" hidden>
+        <input type="date" id="sharedStart">
+        <span>ถึง</span>
+        <input type="date" id="sharedEnd">
+      </div>
+    `;
+
+    area.parentNode.insertBefore(box,area);
   }
 
+  const check=
+    document.querySelector("#sharedRangeCheck");
 
-  let newFill =
-    tank.querySelector(
-      ".tank-new-fill"
-    );
+  const inputs=
+    box.querySelector(".shared-range-inputs");
 
+  if(check)
+    check.checked=useSharedRange;
 
-  if (!newFill) {
+  if(inputs)
+    inputs.hidden=!useSharedRange;
 
-    newFill =
-      document.createElement(
-        "div"
-      );
+  const start=
+    document.querySelector("#sharedStart");
 
-    newFill.className =
-      "tank-new-fill";
+  const end=
+    document.querySelector("#sharedEnd");
 
-    tank.appendChild(
-      newFill
-    );
+  if(start)
+    start.value=sharedRangeStart||"";
+
+  if(end)
+    end.value=sharedRangeEnd||"";
+}
+
+// ============================================================
+// TANK
+// ============================================================
+
+function ensureNewTankFill(card){
+
+  const tank=card.querySelector(".tank");
+
+  if(!tank) return null;
+
+  let newFill=
+    tank.querySelector(".tank-new-fill");
+
+  if(!newFill){
+
+    newFill=document.createElement("div");
+    newFill.className="tank-new-fill";
+
+    tank.appendChild(newFill);
   }
-
 
   return newFill;
 }
 
+function updateTank(card,product){
 
-// ============================================================
-// UPDATE TANK
-// ============================================================
+  const fill=
+    card.querySelector(".tank-fill");
 
-function updateTank(
-  card,
-  product
-) {
+  if(!fill) return;
 
-  const fill =
-    card.querySelector(
-      ".tank-fill"
-    );
+  const current=Math.max(
+    num(product.remaining),
+    0
+  );
 
+  const load=productLoad(product.id);
 
-  if (!fill) {
-    return;
-  }
+  const total=Math.min(
+    current+load,
+    product.capacity
+  );
 
+  const currentPercent=Math.min(
+    current/product.capacity*100,
+    100
+  );
+
+  const totalPercent=Math.min(
+    total/product.capacity*100,
+    100
+  );
+
+  const addedPercent=Math.max(
+    totalPercent-currentPercent,
+    0
+  );
 
   // น้ำมันเดิม
-  const current =
-    Math.max(
-      num(product.remaining),
-      0
-    );
+  fill.style.height=`${currentPercent}%`;
+  fill.style.bottom="0";
+  fill.style.background=product.color;
 
+  // น้ำมันที่ Load เพิ่ม
+  const newFill=ensureNewTankFill(card);
 
-  // Load ที่สั่งเพิ่ม
-  const load =
-    productLoad(
-      product.id
-    );
+  if(newFill){
 
+    newFill.style.position="absolute";
+    newFill.style.left="0";
+    newFill.style.bottom=`${currentPercent}%`;
+    newFill.style.width="100%";
+    newFill.style.height=`${addedPercent}%`;
+    newFill.style.background=product.newColor;
+    newFill.style.opacity=".95";
+    newFill.style.transition=
+      "height .25s ease,bottom .25s ease";
 
-  // น้ำมันรวมหลังสั่ง
-  const total =
-    Math.min(
-      current + load,
-      product.capacity
-    );
-
-
-  // % น้ำมันเดิม
-  const currentPercent =
-    Math.min(
-      (
-        current /
-        product.capacity
-      ) * 100,
-      100
-    );
-
-
-  // % น้ำมันรวม
-  const totalPercent =
-    Math.min(
-      (
-        total /
-        product.capacity
-      ) * 100,
-      100
-    );
-
-
-  // % ส่วนที่เพิ่ม
-  const addedPercent =
-    Math.max(
-      totalPercent -
-      currentPercent,
-      0
-    );
-
-
-  // ----------------------------------------------------------
-  // น้ำมันเดิม
-  // ----------------------------------------------------------
-
-  fill.style.height =
-    `${currentPercent}%`;
-
-  fill.style.bottom =
-    "0";
-
-  fill.style.background =
-    product.color;
-
-
-  // ----------------------------------------------------------
-  // น้ำมันใหม่
-  // ----------------------------------------------------------
-
-  const newFill =
-    ensureNewTankFill(
-      card
-    );
-
-
-  if (newFill) {
-
-    newFill.style.position =
-      "absolute";
-
-    newFill.style.left =
-      "0";
-
-    newFill.style.bottom =
-      `${currentPercent}%`;
-
-    newFill.style.width =
-      "100%";
-
-    newFill.style.height =
-      `${addedPercent}%`;
-
-    newFill.style.background =
-      product.newColor;
-
-    newFill.style.opacity =
-      "0.95";
-
-    newFill.style.transition =
-      "height .25s ease, bottom .25s ease";
-
-    newFill.hidden =
-      load <= 0;
+    newFill.hidden=load<=0;
   }
 
+  // ความจุ
+  const tankPercent=
+    card.querySelector(".tank-percent");
 
-  // ----------------------------------------------------------
-  // CAPACITY
-  // ----------------------------------------------------------
+  if(tankPercent)
+    tankPercent.textContent=
+      `ความจุ ${fmt(product.capacity)} ลิตร`;
 
-  const tankPercent =
-    card.querySelector(
+  // หลังสั่ง
+  let projection=
+    card.querySelector(".tank-projection");
+
+  if(!projection){
+
+    projection=document.createElement("span");
+    projection.className="tank-projection";
+
+    const wrap=
+      card.querySelector(".tank-wrap");
+
+    if(wrap)
+      wrap.appendChild(projection);
+  }
+
+  if(load>0){
+
+    projection.hidden=false;
+    projection.style.display="block";
+
+    if(current+load>product.capacity){
+
+      projection.textContent=
+        `⚠️ เกินความจุ · ${fmt(total)} ลิตร`;
+
+      projection.style.color="#c67b00";
+
+    }else{
+
+      projection.textContent=
+        `หลังสั่ง ${fmt(total)} ลิตร`;
+
+      projection.style.color="#8a6a25";
+    }
+
+  }else{
+
+    projection.hidden=true;
+    projection.style.display="none";
+  }
+}
+
+// ============================================================
+// PRODUCTS
+// ============================================================
+
+function renderProducts(){
+
+  const area=
+    document.querySelector("#productColumns");
+
+  const template=
+    document.querySelector("#productTemplate");
+
+  if(!area||!template) return;
+
+  area.innerHTML="";
+
+  PRODUCTS.forEach(product=>{
+
+    const node=
+      template.content.cloneNode(true);
+
+    const sales=
+      averageSales(product.id);
+
+    const dead=
+      deadStock(product);
+
+    const fill=
+      Math.min(
+        product.remaining/
+        product.capacity*
+        100,
+        100
+      );
+
+    node.querySelector(
+      ".product-code"
+    ).textContent=product.code;
+
+    const tankFill=
+      node.querySelector(".tank-fill");
+
+    tankFill.style.height=`${fill}%`;
+    tankFill.style.background=product.color;
+
+    node.querySelector(
       ".tank-percent"
-    );
+    ).textContent=
+      `ความจุ ${fmt(product.capacity)} ลิตร`;
 
+    const rangeStart=
+      node.querySelector(".range-start");
 
-  if (tankPercent) {
+    const rangeEnd=
+      node.querySelector(".range-end");
 
-    tankPercent.textContent =
-      `ความจุ ${fmt(
-        product.capacity
-      )} ลิตร`;
-  }
+    rangeStart.value=
+      product.rangeStart||"";
 
+    rangeEnd.value=
+      product.rangeEnd||"";
 
-  // ----------------------------------------------------------
-  // AFTER ORDER
-  // ----------------------------------------------------------
+    rangeStart.dataset.id=
+      product.id;
 
-  let projection =
-    card.querySelector(
-      ".tank-projection"
-    );
+    rangeEnd.dataset.id=
+      product.id;
 
+    node.querySelector(
+      ".selected-sales b"
+    ).textContent=fmt(sales);
 
-  if (!projection) {
+    node.querySelector(
+      ".dead-stock b"
+    ).textContent=fmt(dead);
 
-    projection =
-      document.createElement(
-        "span"
-      );
+    const remaining=
+      node.querySelector(".remaining");
 
-    projection.className =
-      "tank-projection";
+    remaining.value=
+      product.remaining;
 
-    const tankWrap =
-      card.querySelector(
-        ".tank-wrap"
-      );
+    remaining.dataset.id=
+      product.id;
 
-    if (tankWrap) {
+    node.querySelector(
+      ".stock-current b"
+    ).textContent=
+      sales
+        ? `${stockDay(
+            product.remaining-dead,
+            sales
+          ).toFixed(1)} วัน`
+        : "—";
 
-      tankWrap.appendChild(
-        projection
-      );
-    }
-  }
+    area.append(node);
+  });
 
+  // อัปเดตถังหลัง Render
+  document
+    .querySelectorAll(".product")
+    .forEach(card=>{
 
-  if (load > 0) {
+      const code=
+        card.querySelector(
+          ".product-code"
+        )?.textContent;
 
-    projection.textContent =
-      `หลังสั่ง ${fmt(
-        total
-      )} ลิตร`;
+      const product=
+        PRODUCTS.find(
+          p=>p.code===code
+        );
 
-    projection.hidden =
-      false;
-
-    projection.style.display =
-      "block";
-
-    projection.style.marginTop =
-      "4px";
-
-    projection.style.fontSize =
-      "10px";
-
-    projection.style.fontWeight =
-      "600";
-
-    projection.style.color =
-      "#8a6a25";
-
-
-    if (
-      current + load >
-      product.capacity
-    ) {
-
-      projection.textContent =
-        `⚠️ เกินความจุ · ${fmt(
-          total
-        )} ลิตร`;
-
-      projection.style.color =
-        "#c67b00";
-    }
-
-  } else {
-
-    projection.hidden =
-      true;
-
-    projection.style.display =
-      "none";
-  }
+      if(product)
+        updateTank(card,product);
+    });
 }
 
-
 // ============================================================
-// RENDER PRODUCTS
-// ============================================================
-
-function renderProducts() {
-
-  const area =
-    document.querySelector(
-      "#productColumns"
-    );
-
-
-  const template =
-    document.querySelector(
-      "#productTemplate"
-    );
-
-
-  if (!area || !template) {
-    return;
-  }
-
-
-  area.innerHTML = "";
-
-
-  PRODUCTS.forEach(
-    product => {
-
-      const node =
-        template.content
-          .cloneNode(true);
-
-
-      const sales =
-        averageSales(
-          product.id
-        );
-
-
-      const dead =
-        deadStock(
-          product
-        );
-
-
-      // --------------------------------------------------------
-      // PRODUCT CODE
-      // --------------------------------------------------------
-
-      node.querySelector(
-        ".product-code"
-      ).textContent =
-        product.code;
-
-
-      // --------------------------------------------------------
-      // TANK
-      // --------------------------------------------------------
-
-      const fill =
-        Math.min(
-          (
-            product.remaining /
-            product.capacity
-          ) * 100,
-          100
-        );
-
-
-      const tankFill =
-        node.querySelector(
-          ".tank-fill"
-        );
-
-
-      if (tankFill) {
-
-        tankFill.style.height =
-          `${fill}%`;
-
-        tankFill.style.bottom =
-          "0";
-
-        tankFill.style.background =
-          product.color;
-      }
-
-
-      // --------------------------------------------------------
-      // CAPACITY
-      // --------------------------------------------------------
-
-      node.querySelector(
-        ".tank-percent"
-      ).textContent =
-        `ความจุ ${fmt(
-          product.capacity
-        )} ลิตร`;
-
-
-      // --------------------------------------------------------
-      // DATE RANGE
-      // --------------------------------------------------------
-
-      const rangeStart =
-        node.querySelector(
-          ".range-start"
-        );
-
-
-      const rangeEnd =
-        node.querySelector(
-          ".range-end"
-        );
-
-
-      if (rangeStart) {
-
-        rangeStart.value =
-          product.rangeStart ||
-          "";
-
-        rangeStart.dataset.id =
-          product.id;
-      }
-
-
-      if (rangeEnd) {
-
-        rangeEnd.value =
-          product.rangeEnd ||
-          "";
-
-        rangeEnd.dataset.id =
-          product.id;
-      }
-
-
-      // --------------------------------------------------------
-      // SALES
-      // --------------------------------------------------------
-
-      node.querySelector(
-        ".selected-sales b"
-      ).textContent =
-        fmt(sales);
-
-
-      // --------------------------------------------------------
-      // DEAD STOCK
-      // --------------------------------------------------------
-
-      node.querySelector(
-        ".dead-stock b"
-      ).textContent =
-        fmt(dead);
-
-
-      // --------------------------------------------------------
-      // REMAINING
-      // --------------------------------------------------------
-
-      const remaining =
-        node.querySelector(
-          ".remaining"
-        );
-
-
-      if (remaining) {
-
-        remaining.value =
-          product.remaining;
-
-        remaining.dataset.id =
-          product.id;
-      }
-
-
-      // --------------------------------------------------------
-      // CURRENT STOCK DAY
-      // --------------------------------------------------------
-
-      node.querySelector(
-        ".stock-current b"
-      ).textContent =
-        sales
-          ? `${stockDay(
-              product.remaining -
-              dead,
-              sales
-            ).toFixed(1)} วัน`
-          : "—";
-
-
-      // --------------------------------------------------------
-      // ADD CARD
-      // --------------------------------------------------------
-
-      area.appendChild(
-        node
-      );
-    }
-  );
-
-
-  // ----------------------------------------------------------
-  // UPDATE TANK AFTER CARDS EXIST
-  // ----------------------------------------------------------
-
-  const cards =
-    area.querySelectorAll(
-      ".product"
-    );
-
-
-  cards.forEach(
-    (card, index) => {
-
-      updateTank(
-        card,
-        PRODUCTS[index]
-      );
-    }
-  );
-}
-
-
-// ============================================================
-// RENDER TRUCK SLOTS
+// TRUCK / LOAD
 // ============================================================
 
-function renderSlots() {
+function renderSlots(){
 
-  const area =
-    document.querySelector(
-      "#loadSlots"
-    );
+  const area=
+    document.querySelector("#loadSlots");
 
+  if(!area) return;
 
-  if (!area) {
-    return;
-  }
+  area.innerHTML="";
+  area.dataset.slots=
+    String(loadConfig.length);
 
-
-  area.innerHTML = "";
-
-
-  area.dataset.slots =
-    String(
-      loadConfig.length
-    );
-
-
-  const shortNames = {
-    g95: "95",
-    g91: "91",
-    e20: "E20",
-    diesel: "DSL"
+  const shortNames={
+    g95:"95",
+    g91:"91",
+    e20:"E20",
+    diesel:"DSL"
   };
 
+  loadConfig.forEach((item,index)=>{
 
-  loadConfig.forEach(
-    (item, index) => {
+    const products=
+      PRODUCTS.map(product=>`
+        <option
+          value="${product.id}"
+          ${product.id===item.product?"selected":""}>
+          ${shortNames[product.id]}
+        </option>
+      `).join("");
 
-      const products =
-        PRODUCTS
-          .map(
-            product => `
-              <option
-                value="${product.id}"
-                ${
-                  product.id ===
-                  item.product
-                    ? "selected"
-                    : ""
-                }
-              >
-                ${
-                  shortNames[
-                    product.id
-                  ]
-                }
-              </option>
-            `
-          )
-          .join("");
+    area.insertAdjacentHTML(
+      "beforeend",
+      `
+      <div class="load-slot">
 
+        <p>ช่องที่ ${index+1}</p>
 
-      area.insertAdjacentHTML(
-        "beforeend",
+        <select
+          data-field="product"
+          data-index="${index}">
+          ${products}
+        </select>
 
-        `
-        <div class="load-slot">
+        <select
+          data-field="litres"
+          data-index="${index}">
 
-          <p>
-            ช่องที่ ${index + 1}
-          </p>
+          <option value="0"
+            ${!item.litres?"selected":""}>
+            —
+          </option>
 
-          <select
-            data-field="product"
-            data-index="${index}"
-          >
-            ${products}
-          </select>
+          <option value="3000"
+            ${item.litres===3000?"selected":""}>
+            3,000 L
+          </option>
 
-          <select
-            data-field="litres"
-            data-index="${index}"
-          >
+          <option value="4000"
+            ${item.litres===4000?"selected":""}>
+            4,000 L
+          </option>
 
-            <option
-              value="0"
-              ${
-                item.litres === 0
-                  ? "selected"
-                  : ""
-              }
-            >
-              —
-            </option>
+        </select>
 
-            <option
-              value="3000"
-              ${
-                item.litres === 3000
-                  ? "selected"
-                  : ""
-              }
-            >
-              3,000 L
-            </option>
+      </div>
+      `
+    );
+  });
 
-            <option
-              value="4000"
-              ${
-                item.litres === 4000
-                  ? "selected"
-                  : ""
-              }
-            >
-              4,000 L
-            </option>
-
-          </select>
-
-        </div>
-        `
-      );
-    }
-  );
-
-
-  // ----------------------------------------------------------
-  // TOTAL LOAD
-  // ----------------------------------------------------------
-
-  const total =
+  const total=
     loadConfig.reduce(
-      (sum, item) =>
-        sum +
-        num(item.litres),
+      (sum,item)=>sum+num(item.litres),
       0
     );
 
+  const truckSize=
+    document.querySelector("#truckSize");
 
-  // ----------------------------------------------------------
-  // TRUCK CAPACITY
-  // ----------------------------------------------------------
+  const capacity=
+    num(truckSize?.value)||20000;
 
-  const truckElement =
-    document.querySelector(
-      "#truckSize"
-    );
-
-
-  const capacity =
-    truckElement
-      ? num(
-          truckElement.value
-        )
-      : 20000;
-
-
-  const truck =
+  const truck=
     TRUCKS[capacity];
 
+  const loadTotal=
+    document.querySelector("#loadTotal");
 
-  // ----------------------------------------------------------
-  // TOTAL
-  // ----------------------------------------------------------
-
-  const loadTotal =
-    document.querySelector(
-      "#loadTotal"
-    );
-
-
-  if (loadTotal) {
-
-    loadTotal.textContent =
-      `${fmt(total)} ลิตร`;
-  }
-
-
-  // ----------------------------------------------------------
-  // CAPACITY
-  // ----------------------------------------------------------
-
-  const capacityLabel =
-    document.querySelector(
-      "#truckCapacityLabel"
-    );
-
-
-  if (capacityLabel) {
-
-    capacityLabel.textContent =
-      `${fmt(
-        capacity
-      )} ลิตร`;
-  }
-
-
-  // ----------------------------------------------------------
-  // TRUCK TYPE
-  // ----------------------------------------------------------
-
-  const truckType =
-    document.querySelector(
-      "#truckTypeLabel"
-    );
-
-
-  if (
-    truckType &&
-    truck
-  ) {
-
-    truckType.textContent =
-      truck.name;
-  }
-
-
-  // ----------------------------------------------------------
-  // SLOT COUNT
-  // ----------------------------------------------------------
-
-  const slotLabel =
-    document.querySelector(
-      "#truckSlotLabel"
-    );
-
-
-  if (
-    slotLabel &&
-    truck
-  ) {
-
-    slotLabel.textContent =
-      `${truck.slots} ช่อง`;
-  }
-
-
-  // ----------------------------------------------------------
-  // REMAINING CAPACITY
-  // ----------------------------------------------------------
-
-  const capacityRemaining =
+  const capacityRemaining=
     document.querySelector(
       "#capacityRemaining"
     );
 
+  const truckCapacityLabel=
+    document.querySelector(
+      "#truckCapacityLabel"
+    );
 
-  if (capacityRemaining) {
+  const truckTypeLabel=
+    document.querySelector(
+      "#truckTypeLabel"
+    );
 
-    if (
-      total >
-      capacity
-    ) {
+  const truckSlotLabel=
+    document.querySelector(
+      "#truckSlotLabel"
+    );
 
-      capacityRemaining.textContent =
-        `เกินความจุ ${fmt(
-          total - capacity
-        )} ลิตร`;
+  if(loadTotal)
+    loadTotal.textContent=
+      `${fmt(total)} ลิตร`;
 
-      capacityRemaining.style.color =
+  if(truckCapacityLabel)
+    truckCapacityLabel.textContent=
+      `${fmt(capacity)} ลิตร`;
+
+  if(truckTypeLabel)
+    truckTypeLabel.textContent=
+      truck?.name||"รถ";
+
+  if(truckSlotLabel)
+    truckSlotLabel.textContent=
+      `${truck?.slots||0} ช่อง`;
+
+  if(capacityRemaining){
+
+    if(total>capacity){
+
+      capacityRemaining.textContent=
+        `เกินความจุ ${fmt(total-capacity)} ลิตร`;
+
+      capacityRemaining.style.color=
         "#d97706";
 
-    } else {
+    }else{
 
-      capacityRemaining.textContent =
-        `เหลือ ${fmt(
-          capacity - total
-        )} ลิตร`;
+      capacityRemaining.textContent=
+        `เหลือ ${fmt(capacity-total)} ลิตร`;
 
-      capacityRemaining.style.color =
-        "";
+      capacityRemaining.style.color="";
     }
   }
 }
 
-
 // ============================================================
-// STOCK DAY AFTER DELIVERY
+// AFTER DELIVERY
 // ============================================================
 
-function renderAfterDelivery() {
+function renderAfterDelivery(){
 
-  const area =
+  const area=
     document.querySelector(
       "#afterDelivery"
     );
 
+  if(!area) return;
 
-  if (!area) {
-    return;
-  }
+  area.innerHTML="";
 
+  PRODUCTS.forEach(product=>{
 
-  area.innerHTML = "";
+    const sales=
+      averageSales(product.id);
 
+    const load=
+      productLoad(product.id);
 
-  PRODUCTS.forEach(
-    product => {
+    const after=
+      product.remaining+
+      load;
 
-      const sales =
-        averageSales(
-          product.id
-        );
+    const usable=
+      after-
+      deadStock(product);
 
-
-      const load =
-        productLoad(
-          product.id
-        );
-
-
-      const afterLitres =
-        product.remaining +
-        load;
-
-
-      const usableAfter =
-        afterLitres -
-        deadStock(product);
-
-
-      const afterStockDay =
-        stockDay(
-          usableAfter,
-          sales
-        );
-
-
-      area.insertAdjacentHTML(
-        "beforeend",
-
-        `
-        <article class="after-item">
-
-          <p>
-            StD
-            <small>(ใหม่)</small>
-            · ${product.code}
-          </p>
-
-          <b>
-            ${
-              sales
-                ? afterStockDay.toFixed(1)
-                : "—"
-            } วัน
-          </b>
-
-          <small>
-            Load ${fmt(
-              load
-            )} ลิตร
-          </small>
-
-        </article>
-        `
+    const std=
+      stockDay(
+        usable,
+        sales
       );
-    }
-  );
+
+    area.insertAdjacentHTML(
+      "beforeend",
+      `
+      <article class="after-item">
+
+        <p>
+          StD
+          <small>(ใหม่)</small>
+          · ${product.code}
+        </p>
+
+        <b>
+          ${sales?std.toFixed(1):"—"} วัน
+        </b>
+
+        <small>
+          Load ${fmt(load)} ลิตร
+        </small>
+
+      </article>
+      `
+    );
+  });
 }
 
-
 // ============================================================
-// RENDER ALL
+// RENDER
 // ============================================================
 
-function render() {
+function render(){
 
+  renderSharedRange();
   renderProducts();
-
   renderSlots();
-
   renderAfterDelivery();
 }
 
-
 // ============================================================
-// CSV PARSER
+// CSV
 // ============================================================
 
-function parseCsvLine(line) {
+function parseCsvLine(line){
 
-  const result = [];
+  const result=[];
+  let current="";
+  let inQuotes=false;
 
-  let current = "";
+  for(let i=0;i<line.length;i++){
 
-  let inQuotes = false;
+    const char=line[i];
 
+    if(char==='"'){
 
-  for (
-    let i = 0;
-    i < line.length;
-    i++
-  ) {
-
-    const char =
-      line[i];
-
-
-    if (
-      char === '"'
-    ) {
-
-      if (
+      if(
         inQuotes &&
-        line[i + 1] === '"'
-      ) {
+        line[i+1]==='"'
+      ){
 
-        current += '"';
-
+        current+='"';
         i++;
 
-      } else {
+      }else{
 
-        inQuotes =
-          !inQuotes;
+        inQuotes=!inQuotes;
       }
 
-
-    } else if (
-      char === "," &&
+    }else if(
+      char==="," &&
       !inQuotes
-    ) {
+    ){
 
-      result.push(
-        current
-      );
+      result.push(current);
+      current="";
 
-      current = "";
+    }else{
 
-    } else {
-
-      current +=
-        char;
+      current+=char;
     }
   }
 
-
-  result.push(
-    current
-  );
-
+  result.push(current);
 
   return result.map(
-    value =>
-      value.trim()
+    value=>value.trim()
   );
 }
 
+function parseCsv(text){
 
-// ============================================================
-// PARSE CSV
-// ============================================================
+  const lines=
+    text.trim().split(/\r?\n/);
 
-function parseCsv(text) {
+  if(!lines.length) return [];
 
-  const lines =
-    text
-      .trim()
-      .split(/\r?\n/);
-
-
-  if (!lines.length) {
-    return [];
-  }
-
-
-  const keys =
-    parseCsvLine(
-      lines.shift()
-    )
-    .map(
-      key =>
-        key.toLowerCase()
-    );
-
+  const keys=
+    parseCsvLine(lines.shift())
+      .map(key=>key.toLowerCase());
 
   return lines
+    .map(line=>{
 
-    .map(line => {
+      const values=
+        parseCsvLine(line);
 
-      const values =
-        parseCsvLine(
-          line
-        );
-
-
-      const row =
+      const row=
         Object.fromEntries(
           keys.map(
-            (key, i) => [
+            (key,i)=>[
               key,
               values[i]
             ]
           )
         );
 
-
-      if (
-        row.litres
-      ) {
-
-        row.litres =
-          row.litres
-            .replace(
-              /,/g,
-              ""
-            );
-      }
-
+      if(row.litres)
+        row.litres=
+          row.litres.replace(/,/g,"");
 
       return row;
     })
-
-
     .filter(
-      row =>
-        row.date &&
-        row.product &&
+      row=>
+        row.date&&
+        row.product&&
         row.litres
     );
 }
-
 
 // ============================================================
 // LOAD GOOGLE SHEETS
 // ============================================================
 
-async function loadSheet() {
+async function loadSheet(){
 
-  if (!SHEET_CSV_URL) {
-    return;
-  }
+  if(!SHEET_CSV_URL) return;
 
-
-  const status =
+  const status=
     document.querySelector(
       "#dataStatus"
     );
 
-
-  if (status) {
-
-    status.textContent =
+  if(status)
+    status.textContent=
       "กำลังโหลด…";
-  }
 
+  try{
 
-  try {
-
-    const response =
+    const response=
       await fetch(
         SHEET_CSV_URL
       );
 
-
-    if (!response.ok) {
-
+    if(!response.ok)
       throw new Error(
         "Sheet unavailable"
       );
-    }
 
-
-    const text =
-      await response.text();
-
-
-    salesRows =
-      parseCsv(text)
-        .map(
-          row => ({
-            ...row,
-            product:
-              row.product
-                .toLowerCase()
-          })
-        );
-
+    salesRows=
+      parseCsv(
+        await response.text()
+      ).map(row=>({
+        ...row,
+        product:
+          row.product.toLowerCase()
+      }));
 
     applyDefaultRanges();
 
-
-    if (status) {
-
-      status.textContent =
+    if(status)
+      status.textContent=
         "เชื่อม Google Sheets แล้ว";
-    }
 
-
-    const dot =
+    const dot=
       document.querySelector(
         ".data-status i"
       );
 
-
-    if (dot) {
-
-      dot.style.background =
+    if(dot)
+      dot.style.background=
         "#25ac58";
-    }
-
 
     render();
 
-
-  } catch (error) {
+  }catch(error){
 
     console.error(
       "Google Sheets error:",
       error
     );
 
-
-    if (status) {
-
-      status.textContent =
+    if(status)
+      status.textContent=
         "ใช้ข้อมูลตัวอย่าง";
-    }
   }
 }
-
 
 // ============================================================
 // REMAINING INPUT
@@ -1493,86 +929,66 @@ async function loadSheet() {
 
 document.addEventListener(
   "input",
-  event => {
+  event=>{
 
-    if (
+    if(
       !event.target.matches(
         ".remaining"
       )
-    ) {
-      return;
-    }
+    ) return;
 
-
-    const product =
+    const product=
       PRODUCTS.find(
-        p =>
-          p.id ===
+        p=>
+          p.id===
           event.target.dataset.id
       );
 
+    if(!product) return;
 
-    if (!product) {
-      return;
-    }
+    product.remaining=
+      num(event.target.value);
 
-
-    product.remaining =
-      num(
-        event.target.value
-      );
-
-
-    const card =
+    const card=
       event.target.closest(
         ".product"
       );
 
-
-    if (card) {
-
-      const sales =
-        averageSales(
-          product.id
-        );
-
-
-      const dead =
-        deadStock(
-          product
-        );
-
+    if(card){
 
       updateTank(
         card,
         product
       );
 
+      const sales=
+        averageSales(
+          product.id
+        );
 
-      const current =
+      const dead=
+        deadStock(product);
+
+      const current=
         card.querySelector(
           ".stock-current b"
         );
 
+      if(current){
 
-      if (current) {
-
-        current.textContent =
+        current.textContent=
           sales
             ? `${stockDay(
-                product.remaining -
-                dead,
+                product.remaining-dead,
                 sales
               ).toFixed(1)} วัน`
             : "—";
       }
     }
 
-
     renderAfterDelivery();
   }
 );
-
 
 // ============================================================
 // CHANGE EVENTS
@@ -1580,240 +996,258 @@ document.addEventListener(
 
 document.addEventListener(
   "change",
-  event => {
+  event=>{
 
-    // ----------------------------------------------------------
-    // START DATE
-    // ----------------------------------------------------------
+    // --------------------------------------------------------
+    // SHARED RANGE CHECKBOX
+    // --------------------------------------------------------
 
-    if (
+    if(
+      event.target.matches(
+        "#sharedRangeCheck"
+      )
+    ){
+
+      useSharedRange=
+        event.target.checked;
+
+      if(useSharedRange){
+
+        sharedRangeStart=
+          PRODUCTS[0].rangeStart;
+
+        sharedRangeEnd=
+          PRODUCTS[0].rangeEnd;
+      }
+
+      render();
+
+      return;
+    }
+
+    // --------------------------------------------------------
+    // SHARED START
+    // --------------------------------------------------------
+
+    if(
+      event.target.matches(
+        "#sharedStart"
+      )
+    ){
+
+      sharedRangeStart=
+        event.target.value;
+
+      renderProducts();
+      renderAfterDelivery();
+
+      renderSharedRange();
+
+      return;
+    }
+
+    // --------------------------------------------------------
+    // SHARED END
+    // --------------------------------------------------------
+
+    if(
+      event.target.matches(
+        "#sharedEnd"
+      )
+    ){
+
+      sharedRangeEnd=
+        event.target.value;
+
+      renderProducts();
+      renderAfterDelivery();
+
+      renderSharedRange();
+
+      return;
+    }
+
+    // --------------------------------------------------------
+    // INDIVIDUAL START
+    // --------------------------------------------------------
+
+    if(
       event.target.matches(
         ".range-start"
       )
-    ) {
+    ){
 
-      const product =
+      const product=
         PRODUCTS.find(
-          product =>
-            product.id ===
+          p=>
+            p.id===
             event.target.dataset.id
         );
 
+      if(product){
 
-      if (product) {
-
-        product.rangeStart =
+        product.rangeStart=
           event.target.value;
 
         renderProducts();
-
         renderAfterDelivery();
       }
-
 
       return;
     }
 
+    // --------------------------------------------------------
+    // INDIVIDUAL END
+    // --------------------------------------------------------
 
-    // ----------------------------------------------------------
-    // END DATE
-    // ----------------------------------------------------------
-
-    if (
+    if(
       event.target.matches(
         ".range-end"
       )
-    ) {
+    ){
 
-      const product =
+      const product=
         PRODUCTS.find(
-          product =>
-            product.id ===
+          p=>
+            p.id===
             event.target.dataset.id
         );
 
+      if(product){
 
-      if (product) {
-
-        product.rangeEnd =
+        product.rangeEnd=
           event.target.value;
 
         renderProducts();
-
         renderAfterDelivery();
       }
 
-
       return;
     }
 
-
-    // ----------------------------------------------------------
+    // --------------------------------------------------------
     // TRUCK SIZE
-    // ----------------------------------------------------------
+    // --------------------------------------------------------
 
-    if (
+    if(
       event.target.matches(
         "#truckSize"
       )
-    ) {
+    ){
 
-      const capacity =
-        num(
-          event.target.value
-        );
+      const capacity=
+        num(event.target.value);
 
-
-      const truck =
+      const truck=
         TRUCKS[capacity];
 
+      if(!truck) return;
 
-      if (!truck) {
-        return;
-      }
-
-
-      loadConfig =
+      loadConfig=
         Array.from(
           {
-            length:
-              truck.slots
+            length:truck.slots
           },
-          (_, index) =>
-            loadConfig[index] ||
-            {
+          (_,index)=>
+            loadConfig[index]||{
               product:
                 PRODUCTS[
-                  index %
+                  index%
                   PRODUCTS.length
                 ].id,
-
-              litres: 0
+              litres:0
             }
         );
 
-
       renderSlots();
-
-      renderAfterDelivery();
-
       renderProducts();
+      renderAfterDelivery();
 
       return;
     }
 
+    // --------------------------------------------------------
+    // LOAD
+    // --------------------------------------------------------
 
-    // ----------------------------------------------------------
-    // LOAD PRODUCT / LITRES
-    // ----------------------------------------------------------
-
-    if (
+    if(
       event.target.matches(
         "[data-field]"
       )
-    ) {
+    ){
 
-      const index =
+      const index=
         num(
           event.target.dataset.index
         );
 
-
-      const field =
+      const field=
         event.target.dataset.field;
 
-
-      if (
-        !loadConfig[index]
-      ) {
+      if(!loadConfig[index])
         return;
-      }
 
+      if(field==="litres"){
 
-      if (
-        field ===
-        "litres"
-      ) {
+        loadConfig[index].litres=
+          num(event.target.value);
 
-        loadConfig[index]
-          .litres =
-          num(
-            event.target.value
-          );
+      }else{
 
-      } else {
-
-        loadConfig[index]
-          .product =
+        loadConfig[index].product=
           event.target.value;
       }
 
-
       renderSlots();
-
       renderProducts();
-
       renderAfterDelivery();
     }
   }
 );
 
-
 // ============================================================
 // REFRESH
 // ============================================================
 
-const refreshBtn =
+const refreshBtn=
   document.querySelector(
     "#refreshBtn"
   );
 
-
-if (refreshBtn) {
-
-  refreshBtn.onclick =
+if(refreshBtn)
+  refreshBtn.onclick=
     loadSheet;
-}
-
 
 // ============================================================
-// FORCE DEFAULT TRUCK = 20,000 L
+// DEFAULT TRUCK = 20,000 L
 // ============================================================
 
-const truckSize =
+const truckSize=
   document.querySelector(
     "#truckSize"
   );
 
+if(truckSize){
 
-if (truckSize) {
+  truckSize.value="20000";
 
-  truckSize.value =
-    "20000";
-
-
-  loadConfig =
+  loadConfig=
     Array.from(
-      {
-        length: 5
-      },
-      (_, index) => ({
+      {length:5},
+      (_,index)=>({
         product:
           PRODUCTS[
-            index %
+            index%
             PRODUCTS.length
           ].id,
-
-        litres: 0
+        litres:0
       })
     );
 }
 
-
 // ============================================================
-// INITIAL RENDER
+// INITIAL
 // ============================================================
 
 render();
-
 loadSheet();

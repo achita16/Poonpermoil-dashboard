@@ -24,35 +24,32 @@ jobs:
           import xml.etree.ElementTree as ET
           from email.utils import parsedate_to_datetime
           from datetime import datetime, timezone
-
           from urllib.parse import urlencode
 
-def make_google_news_url(query, hl, gl, ceid):
-    params = {
-        "q": query,
-        "hl": hl,
-        "gl": gl,
-        "ceid": ceid
-    }
+          def make_google_news_url(query, hl, gl, ceid):
+              params = {
+                  "q": query,
+                  "hl": hl,
+                  "gl": gl,
+                  "ceid": ceid
+              }
 
-    return "https://news.google.com/rss/search?" + urlencode(params)
+              return "https://news.google.com/rss/search?" + urlencode(params)
 
-
-FEEDS = {
-    "th": make_google_news_url(
-        "WTI น้ำมันดิบ ราคาน้ำมัน OPEC when:3d",
-        "th",
-        "TH",
-        "TH:th"
-    ),
-
-    "en": make_google_news_url(
-        "WTI crude oil oil price OPEC when:3d",
-        "en-US",
-        "US",
-        "US:en"
-    )
-}
+          FEEDS = {
+              "th": make_google_news_url(
+                  "WTI น้ำมันดิบ ราคาน้ำมัน OPEC when:3d",
+                  "th",
+                  "TH",
+                  "TH:th"
+              ),
+              "en": make_google_news_url(
+                  "WTI crude oil oil price OPEC when:3d",
+                  "en-US",
+                  "US",
+                  "US:en"
+              )
+          }
 
           def fetch_feed(url):
               req = urllib.request.Request(
@@ -85,10 +82,12 @@ FEEDS = {
 
                   try:
                       dt = parsedate_to_datetime(pub_date)
+
                       if dt.tzinfo is None:
                           dt = dt.replace(tzinfo=timezone.utc)
 
                       iso_date = dt.astimezone(timezone.utc).isoformat()
+
                   except Exception:
                       iso_date = pub_date
 
@@ -105,7 +104,6 @@ FEEDS = {
               )
 
               return articles[:5]
-
 
           news = {
               "updatedAt": datetime.now(timezone.utc).isoformat(),

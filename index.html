@@ -111,88 +111,55 @@
 <script src="app-2.js"></script>
 
 <script>
+/<script>
 /* =========================================
-   OIL NEWS - FREE GDELT
-   ไม่ใช้ RSS2JSON
-   ไม่ใช้ API KEY
+   OIL NEWS
+   GDELT - FREE / NO API KEY
 ========================================= */
 
-const NEWS_API =
+const GDELT_API =
   "https://api.gdeltproject.org/api/v2/doc/doc";
 
 async function fetchNews() {
 
   const btn = document.getElementById("fetchNewsBtn");
   const grid = document.getElementById("newsGrid");
-  const lang = document.getElementById("newsLang").value;
 
   btn.disabled = true;
   btn.textContent = "⏳ กำลังโหลด...";
 
   grid.innerHTML = `
     <div class="news-placeholder">
-      <span>กำลังค้นหาข่าวน้ำมันล่าสุด...</span>
+      <span>กำลังดึงข่าวล่าสุด...</span>
     </div>
   `;
 
   try {
 
-    /*
-      ภาษาไทย:
-      ค้นทั้ง WTI / น้ำมันดิบ / ราคาน้ำมัน / OPEC
+    const query =
+      'WTI OR "crude oil" OR "oil price" OR OPEC';
 
-      English:
-      ค้น WTI / crude oil / oil price / OPEC
-    */
+    const params = new URLSearchParams();
 
-    let query;
-
-    if (lang === "th") {
-
-      query =
-        '(WTI OR "น้ำมันดิบ" OR "ราคาน้ำมัน" OR OPEC)';
-
-    } else {
-
-      query =
-        '(WTI OR "crude oil" OR "oil price" OR OPEC)';
-
-    }
-
-    const params = new URLSearchParams({
-
-      query: query,
-
-      mode: "artlist",
-
-      maxrecords: "30",
-
-      timespan: "24h",
-
-      sort: "datedesc",
-
-      format: "json"
-
-    });
-
-    /*
-      เพิ่ม timestamp กัน cache
-    */
-    params.set("_", Date.now());
+    params.set("query", query);
+    params.set("mode", "artlist");
+    params.set("maxrecords", "20");
+    params.set("timespan", "48h");
+    params.set("sort", "datedesc");
+    params.set("format", "json");
 
     const url =
-      NEWS_API + "?" + params.toString();
+      GDELT_API + "?" + params.toString();
 
-    console.log("NEWS API:", url);
+    console.log("GDELT:", url);
 
     const response = await fetch(url, {
-      method: "GET",
       cache: "no-store"
     });
 
     if (!response.ok) {
       throw new Error(
-        "GDELT HTTP " + response.status
+        "HTTP " + response.status
       );
     }
 
@@ -202,104 +169,77 @@ async function fetchNews() {
 
     if (
       !data ||
-      !data.articles ||
-      data.articles.length === 0
+      !Array.isArray(data.articles)
     ) {
       throw new Error(
-        "ไม่พบข่าวในช่วง 24 ชั่วโมงล่าสุด"
+        "ไม่พบข้อมูลข่าว"
       );
     }
 
-    /*
-      เอาข่าวล่าสุดก่อน
-    */
-    const articles = data.articles
-      .sort((a, b) => {
+    if (data.articles.length === 0) {
+      throw new Error(
+        "ไม่มีข่าวในช่วง 48 ชั่วโมงล่าสุด"
+      );
+    }
 
-        const dateA =
-          new Date(
-            a.seendate ||
-            a.date ||
-            0
-          );
-
-        const dateB =
-          new Date(
-            b.seendate ||
-            b.date ||
-            0
-          );
-
-        return dateB - dateA;
-
-      })
-      .slice(0, 9);
+    /* เอาแค่ 5 ข่าวล่าสุด */
+    const articles =
+      data.articles.slice(0, 5);
 
 
-    grid.innerHTML = articles.map(article => {
+    grid.innerHTML =
+      articles.map(article => {
 
-      const title =
-        article.title ||
-        "ข่าวน้ำมัน";
+        const title =
+          article.title ||
+          "ข่าวน้ำมันล่าสุด";
 
-      const link =
-        article.url ||
-        "#";
+        const link =
+          article.url ||
+          "#";
 
-      const source =
-        article.domain ||
-        article.sourcecountry ||
-        "Oil News";
+        const source =
+          article.domain ||
+          "Oil News";
 
-      /*
-        GDELT วันที่มักเป็นรูปแบบ
-        YYYYMMDDTHHMMSSZ
-      */
+        let dateText = "";
 
-      let dateText = "";
+        try {
 
-      try {
-
-        const rawDate =
-          article.seendate ||
-          article.date;
-
-        if (rawDate) {
-
-          let formatted =
-            rawDate;
+          let raw =
+            article.seendate ||
+            article.date ||
+            "";
 
           /*
-            แปลง YYYYMMDDTHHMMSSZ
-            ให้ JS อ่านได้
-          */
+           * GDELT format:
+           * 20260916T083000Z
+           */
 
           if (
-            /^\d{8}T\d{6}Z$/.test(
-              formatted
-            )
+            /^\d{8}T\d{6}Z$/.test(raw)
           ) {
 
-            formatted =
-              formatted.replace(
+            raw =
+              raw.replace(
                 /^(\d{4})(\d{2})(\d{2})T/,
                 "$1-$2-$3T"
               );
 
-            formatted =
-              formatted.replace(
-                /Z$/,
+            raw =
+              raw.replace(
+                "Z",
                 ":00Z"
               );
           }
 
-          const d =
-            new Date(formatted);
+          const date =
+            new Date(raw);
 
-          if (!isNaN(d)) {
+          if (!isNaN(date.getTime())) {
 
             dateText =
-              d.toLocaleDateString(
+              date.toLocaleDateString(
                 "th-TH",
                 {
                   day: "numeric",
@@ -310,7 +250,7 @@ async function fetchNews() {
               +
               " · "
               +
-              d.toLocaleTimeString(
+              date.toLocaleTimeString(
                 "th-TH",
                 {
                   hour: "2-digit",
@@ -320,56 +260,54 @@ async function fetchNews() {
 
           }
 
+        } catch (e) {
+
+          console.warn(
+            "Date error",
+            e
+          );
+
         }
 
-      } catch (e) {
 
-        console.warn(
-          "Date error:",
-          e
-        );
+        return `
 
-      }
+          <a
+            class="news-card"
+            href="${link}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
 
+            <div class="news-card-body">
 
-      return `
+              <p class="news-source">
+                ${source}
+              </p>
 
-        <a
-          class="news-card"
-          href="${link}"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+              <p class="news-headline">
+                ${title}
+              </p>
 
-          <div class="news-card-body">
+            </div>
 
-            <p class="news-source">
-              ${source}
-            </p>
+            <div class="news-card-foot">
 
-            <p class="news-headline">
-              ${title}
-            </p>
+              <span class="news-date">
+                ${dateText}
+              </span>
 
-          </div>
+              <span class="news-read">
+                อ่านต่อ →
+              </span>
 
-          <div class="news-card-foot">
+            </div>
 
-            <span class="news-date">
-              ${dateText}
-            </span>
+          </a>
 
-            <span class="news-read">
-              อ่านต่อ →
-            </span>
+        `;
 
-          </div>
-
-        </a>
-
-      `;
-
-    }).join("");
+      }).join("");
 
 
   } catch (error) {
@@ -387,11 +325,13 @@ async function fetchNews() {
           ⚠️ โหลดข่าวไม่สำเร็จ
         </span>
 
-        <small style="
-          display:block;
-          margin-top:8px;
-          opacity:.65;
-        ">
+        <small
+          style="
+            display:block;
+            margin-top:8px;
+            opacity:.6;
+          "
+        >
           ${error.message}
         </small>
 
@@ -401,7 +341,6 @@ async function fetchNews() {
 
   }
 
-
   btn.disabled = false;
 
   btn.textContent =
@@ -410,10 +349,7 @@ async function fetchNews() {
 }
 
 
-/* =========================================
-   BUTTON
-========================================= */
-
+/* ปุ่ม */
 document
   .getElementById("fetchNewsBtn")
   .addEventListener(
@@ -422,10 +358,7 @@ document
   );
 
 
-/* =========================================
-   LOAD NEWS ON START
-========================================= */
-
+/* โหลดตอนเปิดเว็บ */
 fetchNews();
 
 </script>

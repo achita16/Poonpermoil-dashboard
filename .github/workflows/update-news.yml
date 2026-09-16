@@ -1,9 +1,9 @@
 name: Update Oil News
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: "0 * * * *"
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -13,95 +13,106 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Fetch Google News RSS
+      - name: Fetch latest oil news
+        env:
+          TZ: Asia/Bangkok
         run: |
           python3 <<'PY'
           import json
+          import re
           import urllib.request
+          import urllib.parse
           import xml.etree.ElementTree as ET
+          from datetime import datetime, timezone, timedelta
           from email.utils import parsedate_to_datetime
-          from datetime import datetime, timezone
-          from urllib.parse import urlencode
 
+          OUTPUT = "news.json"
 
-          # ==========================================
-          # Google News URL
-          # ==========================================
+          NOW = datetime.now(timezone.utc)
+          CUTOFF = NOW - timedelta(days=7)
 
-          def make_google_news_url(query, hl, gl, ceid):
+          # ---------------------------------------------------------
+          # GOOGLE NEWS RSS
+          # ---------------------------------------------------------
+
+          def google_news_url(query, lang, country):
               params = {
                   "q": query,
-                  "hl": hl,
-                  "gl": gl,
-                  "ceid": ceid
+                  "hl": lang,
+                  "gl": country,
+                  "ceid": f"{country}:{lang.split('-')[0]}"
               }
 
               return (
                   "https://news.google.com/rss/search?"
-                  + urlencode(params)
+                  + urllib.parse.urlencode(params)
               )
 
+          # ---------------------------------------------------------
+          # THAI NEWS
+          # ---------------------------------------------------------
 
-          # ==========================================
-          # 🇹🇭 Thai News
-          # ==========================================
-
-          TH_FEEDS = [
-              make_google_news_url(
-                  "ราคาน้ำมัน WTI น้ำมันดิบ OPEC",
-                  "th",
-                  "TH",
-                  "TH:th"
-              )
+          TH_QUERIES = [
+              "WTI น้ำมันดิบ ราคาน้ำมัน when:3d",
+              "OPEC OPEC+ น้ำมัน when:3d",
+              "ราคาน้ำมันโลก Brent WTI when:3d",
+              "EIA สต็อกน้ำมัน สหรัฐ when:3d"
           ]
 
+          # ---------------------------------------------------------
+          # ENGLISH NEWS
+          # เน้นแหล่งข่าวที่ต้องการ
+          # ---------------------------------------------------------
 
-          # ==========================================
-          # 🇺🇸 English News
-          # จำกัดแหล่งข่าว 4 สำนัก
-          # ==========================================
-
-          EN_FEEDS = [
-              make_google_news_url(
-                  "site:reuters.com WTI crude oil OPEC",
-                  "en-US",
-                  "US",
-                  "US:en"
-              ),
-
-              make_google_news_url(
-                  "site:bloomberg.com WTI crude oil OPEC",
-                  "en-US",
-                  "US",
-                  "US:en"
-              ),
-
-              make_google_news_url(
-                  "site:cnbc.com WTI crude oil OPEC",
-                  "en-US",
-                  "US",
-                  "US:en"
-              ),
-
-              make_google_news_url(
-                  "site:oilprice.com WTI crude oil OPEC",
-                  "en-US",
-                  "US",
-                  "US:en"
-              )
+          EN_QUERIES = [
+              ("Reuters", "site:reuters.com WTI crude oil OPEC when:3d"),
+              ("Bloomberg", "site:bloomberg.com WTI crude oil OPEC when:3d"),
+              ("CNBC", "site:cnbc.com WTI crude oil OPEC when:3d"),
+              ("OilPrice.com", "site:oilprice.com WTI crude oil OPEC when:3d")
           ]
 
+          # ---------------------------------------------------------
+          # DATE
+          # ---------------------------------------------------------
 
-          # ==========================================
-          # อ่าน RSS Feed
-          # ==========================================
+          def parse_date(value):
+              if not value:
+                  return None
 
-          def fetch_feed(url):
+              try:
+                  dt = parsedate_to_datetime(value)
 
-              req = urllib.request.Request(
+                  if dt.tzinfo is None:
+                      dt = dt.replace(tzinfo=timezone.utc)
+
+                  return dt.astimezone(timezone.utc)
+
+              except Exception:
+                  return None
+
+          # ---------------------------------------------------------
+          # CLEAN TEXT
+          # ---------------------------------------------------------
+
+          def clean_text(text):
+              if not text:
+                  return ""
+
+              text = re.sub(r"<[^>]+>", "", text)
+              text = re.sub(r"\s+", " ", text)
+
+              return text.strip()
+
+          # ---------------------------------------------------------
+          # FETCH RSS
+          # ---------------------------------------------------------
+
+          def fetch_feed(url, forced_source=None):
+
+              request = urllib.request.Request(
                   url,
                   headers={
                       "User-Agent": "Mozilla/5.0"
@@ -109,269 +120,256 @@ jobs:
               )
 
               with urllib.request.urlopen(
-                  req,
+                  request,
                   timeout=30
               ) as response:
 
                   xml_data = response.read()
 
-
               root = ET.fromstring(xml_data)
 
               articles = []
 
-
               for item in root.findall(".//item"):
 
-                  title = item.findtext(
-                      "title",
-                      ""
-                  ).strip()
-
-                  link = item.findtext(
-                      "link",
-                      ""
-                  ).strip()
-
-                  pub_date = item.findtext(
-                      "pubDate",
-                      ""
-                  ).strip()
-
-
-                  source_element = item.find(
-                      "source"
+                  title = clean_text(
+                      item.findtext("title")
                   )
+
+                  link = clean_text(
+                      item.findtext("link")
+                  )
+
+                  description = clean_text(
+                      item.findtext("description")
+                  )
+
+                  pub_date_raw = clean_text(
+                      item.findtext("pubDate")
+                  )
+
+                  dt = parse_date(pub_date_raw)
+
+                  # ถ้าอ่านวันที่ไม่ได้ ให้ทิ้ง
+                  if not dt:
+                      continue
+
+                  # -------------------------------------------------
+                  # SAFETY FILTER
+                  # ข่าวเกิน 7 วัน ห้ามเข้า news.json
+                  # -------------------------------------------------
+
+                  if dt < CUTOFF:
+                      continue
+
+                  source_element = item.find("source")
 
                   source = ""
 
-
                   if source_element is not None:
-
-                      source = (
+                      source = clean_text(
                           source_element.text or ""
-                      ).strip()
+                      )
 
+                  if forced_source:
+                      source = forced_source
 
                   if not title or not link:
                       continue
 
-
-                  # แปลงวันที่เป็น ISO
-                  try:
-
-                      dt = parsedate_to_datetime(
-                          pub_date
-                      )
-
-                      if dt.tzinfo is None:
-
-                          dt = dt.replace(
-                              tzinfo=timezone.utc
-                          )
-
-
-                      iso_date = (
-                          dt.astimezone(
-                              timezone.utc
-                          ).isoformat()
-                      )
-
-                  except Exception:
-
-                      iso_date = pub_date
-
-
                   articles.append({
-
                       "title": title,
-
                       "link": link,
-
-                      "pubDate": iso_date,
-
-                      "source": source
-
+                      "description": description,
+                      "source": source,
+                      "pubDate": dt.isoformat()
                   })
-
 
               return articles
 
+          # ---------------------------------------------------------
+          # DEDUPE
+          # ---------------------------------------------------------
 
-          # ==========================================
-          # รวมหลาย Feed
-          # ==========================================
-
-          def fetch_multiple_feeds(
-              urls,
-              limit=8
-          ):
-
-              all_articles = []
-
-
-              for url in urls:
-
-                  try:
-
-                      articles = fetch_feed(url)
-
-                      all_articles.extend(
-                          articles
-                      )
-
-                      print(
-                          "Feed OK:",
-                          url
-                      )
-
-                  except Exception as e:
-
-                      print(
-                          "Feed FAILED:",
-                          url
-                      )
-
-                      print(
-                          "Error:",
-                          e
-                      )
-
-
-              # เรียงข่าวใหม่สุดก่อน
-              all_articles.sort(
-                  key=lambda x: x["pubDate"],
-                  reverse=True
-              )
-
-
-              # กันข่าวซ้ำ
-              unique = []
+          def dedupe(articles):
 
               seen = set()
+              result = []
 
+              for article in articles:
 
-              for article in all_articles:
-
-                  key = (
-                      article["title"]
-                      .strip()
-                      .lower()
+                  title_key = re.sub(
+                      r"[^a-z0-9ก-๙]+",
+                      "",
+                      article["title"].lower()
                   )
 
-
-                  if key in seen:
+                  if title_key in seen:
                       continue
 
+                  seen.add(title_key)
 
-                  seen.add(key)
+                  result.append(article)
 
-                  unique.append(
-                      article
+              return result
+
+          # ---------------------------------------------------------
+          # THAI
+          # ---------------------------------------------------------
+
+          thai_articles = []
+
+          for query in TH_QUERIES:
+
+              try:
+
+                  url = google_news_url(
+                      query,
+                      "th",
+                      "TH"
                   )
 
+                  print("TH:", query)
 
-              return unique[:limit]
+                  articles = fetch_feed(url)
 
-
-          # ==========================================
-          # สร้าง news.json
-          # ==========================================
-
-          news = {
-
-              "updatedAt":
-                  datetime.now(
-                      timezone.utc
-                  ).isoformat(),
-
-              "th":
-                  fetch_multiple_feeds(
-                      TH_FEEDS,
-                      limit=8
-                  ),
-
-              "en":
-                  fetch_multiple_feeds(
-                      EN_FEEDS,
-                      limit=8
+                  thai_articles.extend(
+                      articles
                   )
+
+              except Exception as e:
+
+                  print(
+                      "TH ERROR:",
+                      query,
+                      str(e)
+                  )
+
+          thai_articles = dedupe(
+              thai_articles
+          )
+
+          thai_articles.sort(
+              key=lambda x: x["pubDate"],
+              reverse=True
+          )
+
+          thai_articles = thai_articles[:8]
+
+          # ---------------------------------------------------------
+          # ENGLISH
+          # ---------------------------------------------------------
+
+          english_articles = []
+
+          for source_name, query in EN_QUERIES:
+
+              try:
+
+                  url = google_news_url(
+                      query,
+                      "en-US",
+                      "US"
+                  )
+
+                  print(
+                      "EN:",
+                      source_name,
+                      query
+                  )
+
+                  articles = fetch_feed(
+                      url,
+                      forced_source=source_name
+                  )
+
+                  english_articles.extend(
+                      articles
+                  )
+
+              except Exception as e:
+
+                  print(
+                      "EN ERROR:",
+                      source_name,
+                      str(e)
+                  )
+
+          english_articles = dedupe(
+              english_articles
+          )
+
+          english_articles.sort(
+              key=lambda x: x["pubDate"],
+              reverse=True
+          )
+
+          english_articles = english_articles[:8]
+
+          # ---------------------------------------------------------
+          # RESULT
+          # ---------------------------------------------------------
+
+          data = {
+              "updatedAt": NOW.isoformat(),
+              "th": thai_articles,
+              "en": english_articles
           }
 
+          print(
+              "Thai articles:",
+              len(thai_articles)
+          )
 
-          # ==========================================
-          # เขียนไฟล์
-          # ==========================================
+          print(
+              "English articles:",
+              len(english_articles)
+          )
+
+          # ---------------------------------------------------------
+          # ถ้าไม่มีข่าวใหม่เลย ให้ workflow fail
+          # ป้องกันการเขียนข้อมูลว่างทับของเดิม
+          # ---------------------------------------------------------
+
+          if not thai_articles:
+              raise RuntimeError(
+                  "No fresh Thai oil news found."
+              )
+
+          if not english_articles:
+              raise RuntimeError(
+                  "No fresh English oil news found."
+              )
 
           with open(
-              "news.json",
+              OUTPUT,
               "w",
               encoding="utf-8"
           ) as f:
 
               json.dump(
-                  news,
+                  data,
                   f,
                   ensure_ascii=False,
                   indent=2
               )
 
-
           print(
-              "================================"
-          )
-
-          print(
-              "NEWS UPDATE COMPLETE"
-          )
-
-          print(
-              "Thai:",
-              len(news["th"])
-          )
-
-          print(
-              "English:",
-              len(news["en"])
-          )
-
-          print(
-              "================================"
-          )
-
-          print(
-              json.dumps(
-                  news,
-                  ensure_ascii=False,
-                  indent=2
-              )
+              f"Written {OUTPUT}"
           )
 
           PY
 
-
-      - name: Commit updated news
+      - name: Commit news.json
         run: |
-
-          git config user.name \
-            "github-actions[bot]"
-
-          git config user.email \
-            "41898282+github-actions[bot]@users.noreply.github.com"
-
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add news.json
 
-
           if git diff --cached --quiet; then
-
-            echo "No news changes"
-
+            echo "No news changes."
           else
-
-            git commit \
-              -m "Update oil news"
-
+            git commit -m "Update oil news"
             git push
-
           fi

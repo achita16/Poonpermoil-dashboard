@@ -111,425 +111,175 @@
 <script src="app-2.js"></script>
 
 <script>
-// ======= NEWS RSS FETCH =======
-c<script>
-/* =========================================================
-   NEWS RSS
-   ========================================================= */
+/* ===== OIL NEWS ===== */
 
 const RSS_FEEDS = {
-
-  th:
-    "https://news.google.com/rss/search?q=ราคาน้ำมัน+WTI+น้ำมันดิบ&hl=th&gl=TH&ceid=TH:th",
-
-  en:
-    "https://news.google.com/rss/search?q=WTI+crude+oil+price+OPEC&hl=en-US&gl=US&ceid=US:en"
-
+  th: "https://news.google.com/rss/search?q=ราคาน้ำมัน+WTI+น้ำมันดิบ&hl=th&gl=TH&ceid=TH:th",
+  en: "https://news.google.com/rss/search?q=WTI+crude+oil+price+OPEC&hl=en-US&gl=US&ceid=US:en"
 };
 
-
-const RSS_PROXY =
-  "https://api.rss2json.com/v1/api.json?rss_url=";
-
-
-/* =========================================================
-   FETCH NEWS
-   ========================================================= */
+const RSS_PROXY = "https://api.rss2json.com/v1/api.json?rss_url=";
 
 async function fetchNews() {
 
-  const btn =
-    document.getElementById(
-      "fetchNewsBtn"
-    );
-
-  const grid =
-    document.getElementById(
-      "newsGrid"
-    );
-
-  const lang =
-    document.getElementById(
-      "newsLang"
-    ).value;
-
-
-  if (!btn || !grid) {
-    return;
-  }
-
-
-  /* -------------------------------------------------------
-     Loading
-     ------------------------------------------------------- */
+  const btn = document.getElementById("fetchNewsBtn");
+  const grid = document.getElementById("newsGrid");
+  const lang = document.getElementById("newsLang").value;
 
   btn.disabled = true;
-
-  btn.textContent =
-    "⏳ กำลังโหลดข่าว…";
-
-
+  btn.textContent = "⏳ กำลังโหลด...";
+  
   grid.innerHTML = `
-
     <div class="news-placeholder">
-
-      <span>
-        กำลังดึงข่าวล่าสุด…
-      </span>
-
+      <span>กำลังดึงข่าวล่าสุด...</span>
     </div>
-
   `;
-
 
   try {
 
-    /* -----------------------------------------------------
-       RSS URL
-       ----------------------------------------------------- */
+    const feed = RSS_FEEDS[lang];
 
-    const feed =
-      RSS_FEEDS[lang];
-
-
-    /*
-     * เพิ่ม timestamp ทุกครั้ง
-     * เพื่อป้องกัน browser / proxy cache
-     */
-
-    const cacheBust =
-      Date.now();
-
-
+    /* กัน cache */
     const url =
       RSS_PROXY +
       encodeURIComponent(feed) +
       "&_=" +
-      cacheBust;
+      Date.now();
 
+    const res = await fetch(url, {
+      method: "GET",
+      cache: "no-store"
+    });
 
-    /* -----------------------------------------------------
-       FETCH
-       ----------------------------------------------------- */
+    if (!res.ok) {
+      throw new Error("RSS Proxy HTTP " + res.status);
+    }
 
-    const res =
-      await fetch(
-        url,
+    const data = await res.json();
+
+    console.log("NEWS DATA:", data);
+
+    if (!data || data.status !== "ok") {
+      throw new Error(
+        data && data.message
+          ? data.message
+          : "RSS ไม่สามารถโหลดได้"
+      );
+    }
+
+    if (!data.items || data.items.length === 0) {
+      throw new Error("ไม่พบข่าว");
+    }
+
+    /* เรียงข่าวใหม่สุดก่อน */
+    const items = data.items
+      .sort((a, b) => {
+        return new Date(b.pubDate) - new Date(a.pubDate);
+      })
+      .slice(0, 9);
+
+    grid.innerHTML = items.map(item => {
+
+      const date = new Date(item.pubDate);
+
+      const dateStr = date.toLocaleDateString(
+        "th-TH",
         {
-          method: "GET",
-
-          cache: "no-store",
-
-          headers: {
-            "Cache-Control":
-              "no-cache, no-store, max-age=0"
-          }
+          day: "numeric",
+          month: "short",
+          year: "numeric"
         }
       );
 
-
-    if (!res.ok) {
-
-      throw new Error(
-        "HTTP " + res.status
+      const timeStr = date.toLocaleTimeString(
+        "th-TH",
+        {
+          hour: "2-digit",
+          minute: "2-digit"
+        }
       );
-    }
 
+      const desc = item.description
+        ? item.description
+            .replace(/<[^>]*>/g, "")
+            .replace(/&nbsp;/g, " ")
+            .slice(0, 120) + "..."
+        : "";
 
-    const data =
-      await res.json();
+      const source = item.source || "ข่าวน้ำมัน";
 
+      return `
+        <a
+          class="news-card"
+          href="${item.link}"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
 
-    /* -----------------------------------------------------
-       CHECK DATA
-       ----------------------------------------------------- */
+          <div class="news-card-body">
 
-    if (
-      !data ||
-      !data.items ||
-      !data.items.length
-    ) {
+            <p class="news-source">
+              ${source}
+            </p>
 
-      throw new Error(
-        "ไม่พบข่าว"
-      );
-    }
+            <p class="news-headline">
+              ${item.title}
+            </p>
 
+            <p class="news-desc">
+              ${desc}
+            </p>
 
-    /* -----------------------------------------------------
-       SORT BY NEWEST
-       ----------------------------------------------------- */
+          </div>
 
-    const items =
-      [...data.items]
+          <div class="news-card-foot">
 
-        .sort(
-          (a, b) => {
+            <span class="news-date">
+              ${dateStr} · ${timeStr}
+            </span>
 
-            const dateA =
-              new Date(
-                a.pubDate
-              ).getTime();
+            <span class="news-read">
+              อ่านต่อ →
+            </span>
 
-            const dateB =
-              new Date(
-                b.pubDate
-              ).getTime();
+          </div>
 
-            return dateB - dateA;
-          }
-        )
+        </a>
+      `;
 
-        .slice(
-          0,
-          9
-        );
-
-
-    /* -----------------------------------------------------
-       RENDER
-       ----------------------------------------------------- */
-
-    grid.innerHTML =
-
-      items
-        .map(
-          item => {
-
-            const date =
-              new Date(
-                item.pubDate
-              );
-
-
-            const dateStr =
-              date.toLocaleDateString(
-                "th-TH",
-                {
-                  day:
-                    "numeric",
-
-                  month:
-                    "short",
-
-                  year:
-                    "numeric"
-                }
-              );
-
-
-            const timeStr =
-              date.toLocaleTimeString(
-                "th-TH",
-                {
-                  hour:
-                    "2-digit",
-
-                  minute:
-                    "2-digit"
-                }
-              );
-
-
-            /* -------------------------------------------
-               DESCRIPTION
-               ------------------------------------------- */
-
-            const desc =
-              item.description
-
-                ? item.description
-                    .replace(
-                      /<[^>]*>/g,
-                      ""
-                    )
-                    .replace(
-                      /&nbsp;/g,
-                      " "
-                    )
-                    .trim()
-                    .slice(
-                      0,
-                      120
-                    ) + "…"
-
-                : "";
-
-
-            /* -------------------------------------------
-               SOURCE
-               ------------------------------------------- */
-
-            const source =
-              item.source ||
-              "Google News";
-
-
-            /* -------------------------------------------
-               IMAGE
-               ------------------------------------------- */
-
-            let image =
-              item.thumbnail ||
-              "";
-
-
-            if (!image) {
-
-              image =
-                item.enclosure &&
-                item.enclosure.link
-                  ? item.enclosure.link
-                  : "";
-            }
-
-
-            /* -------------------------------------------
-               CARD
-               ------------------------------------------- */
-
-            return `
-
-              <a
-                class="news-card"
-                href="${item.link}"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-
-                ${
-                  image
-                    ? `
-                      <div
-                        class="news-card-image"
-                        style="
-                          background-image:
-                          url('${image}');
-                        "
-                      ></div>
-                    `
-                    : ""
-                }
-
-
-                <div
-                  class="news-card-body"
-                >
-
-                  <p
-                    class="news-source"
-                  >
-                    ${source}
-                  </p>
-
-
-                  <p
-                    class="news-headline"
-                  >
-                    ${item.title}
-                  </p>
-
-
-                  <p
-                    class="news-desc"
-                  >
-                    ${desc}
-                  </p>
-
-                </div>
-
-
-                <div
-                  class="news-card-foot"
-                >
-
-                  <span
-                    class="news-date"
-                  >
-                    ${dateStr}
-                    ·
-                    ${timeStr}
-                  </span>
-
-
-                  <span
-                    class="news-read"
-                  >
-                    อ่านต่อ →
-                  </span>
-
-                </div>
-
-              </a>
-
-            `;
-          }
-        )
-        .join("");
-
+    }).join("");
 
   } catch (err) {
 
-    console.error(
-      "NEWS ERROR:",
-      err
-    );
-
+    console.error("NEWS ERROR:", err);
 
     grid.innerHTML = `
-
-      <div
-        class="news-placeholder"
-      >
+      <div class="news-placeholder">
 
         <span>
           ⚠️ โหลดข่าวไม่สำเร็จ
-          ลองกดใหม่อีกครั้ง
+          <br>
+          <small>
+            กรุณาลองกด "ดึงข่าวล่าสุด" อีกครั้ง
+          </small>
         </span>
 
       </div>
-
     `;
-
   }
 
-
-  /* -------------------------------------------------------
-     RESET BUTTON
-     ------------------------------------------------------- */
-
   btn.disabled = false;
-
-  btn.textContent =
-    "📰 ดึงข่าวล่าสุด";
-
+  btn.textContent = "📰 ดึงข่าวล่าสุด";
 }
 
 
-/* =========================================================
-   BUTTON
-   ========================================================= */
-
-const fetchNewsBtn =
-  document.getElementById(
-    "fetchNewsBtn"
-  );
+/* ปุ่มดึงข่าว */
+document
+  .getElementById("fetchNewsBtn")
+  .addEventListener("click", fetchNews);
 
 
-if (fetchNewsBtn) {
-
-  fetchNewsBtn.addEventListener(
-    "click",
-    fetchNews
-  );
-
-}
-
-
-/* =========================================================
-   LOAD NEWS WHEN PAGE OPENS
-   ========================================================= */
-
+/* โหลดข่าวทันทีเมื่อเปิดเว็บ */
 fetchNews();
 
 </script>

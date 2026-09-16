@@ -295,29 +295,29 @@ jobs:
                       str(e)
                   )
 
-          # จำกัดแต่ละสำนักไม่เกิน 2 ข่าว
-source_count = {}
-balanced_articles = []
+                    # จำกัดแต่ละสำนักไม่เกิน 2 ข่าว
+          source_count = {}
+          balanced_articles = []
 
-for article in sorted(
-    english_articles,
-    key=lambda x: x["pubDate"],
-    reverse=True
-):
-    source = article["source"]
+          for article in sorted(
+              english_articles,
+              key=lambda x: x["pubDate"],
+              reverse=True
+          ):
+              source = article["source"]
 
-    if source_count.get(source, 0) >= 2:
-        continue
+              if source_count.get(source, 0) >= 2:
+                  continue
 
-    source_count[source] = source_count.get(source, 0) + 1
-    balanced_articles.append(article)
+              source_count[source] = source_count.get(source, 0) + 1
+              balanced_articles.append(article)
 
-english_articles = dedupe(balanced_articles)
-english_articles.sort(
-    key=lambda x: x["pubDate"],
-    reverse=True
-)
-english_articles = english_articles[:8]
+          english_articles = dedupe(balanced_articles)
+          english_articles.sort(
+              key=lambda x: x["pubDate"],
+              reverse=True
+          )
+          english_articles = english_articles[:8]
 
           # ---------------------------------------------------------
           # RESULT

@@ -111,75 +111,110 @@
 <script src="app-2.js"></script>
 
 <script>
-  // ======= NEWS FROM news.json =======
+/* ============================================================
+   OIL NEWS
+   อ่านข่าวจาก news.json ที่ GitHub Actions สร้างให้
+   ไม่ใช้ RSS Proxy / rss2json / AllOrigins
+   ============================================================ */
 
-  async function fetchNews() {
-    const btn = document.getElementById("fetchNewsBtn");
-    const grid = document.getElementById("newsGrid");
-    const lang = document.getElementById("newsLang").value;
+async function fetchNews() {
 
-    btn.disabled = true;
-    btn.textContent = "⏳ กำลังโหลด…";
-    grid.innerHTML = `
-      <div class="news-placeholder">
-        <span>กำลังโหลดข่าว…</span>
-      </div>
-    `;
+  const btn =
+    document.getElementById("fetchNewsBtn");
 
-    try {
-      // อ่าน news.json จาก GitHub Pages
-      // เติม timestamp เพื่อป้องกัน browser cache
-      const response = await fetch(
-        "news.json?ts=" + Date.now(),
+  const grid =
+    document.getElementById("newsGrid");
+
+  const lang =
+    document.getElementById("newsLang").value;
+
+  btn.disabled = true;
+
+  btn.textContent =
+    "⏳ กำลังโหลด…";
+
+  grid.innerHTML = `
+    <div class="news-placeholder">
+      <span>กำลังโหลดข่าวล่าสุด…</span>
+    </div>
+  `;
+
+  try {
+
+    const response =
+      await fetch(
+        `news.json?t=${Date.now()}`,
         {
           cache: "no-store"
         }
       );
 
-      if (!response.ok) {
-        throw new Error("HTTP " + response.status);
-      }
+    if (!response.ok) {
+      throw new Error(
+        `HTTP ${response.status}`
+      );
+    }
 
-      const data = await response.json();
+    const data =
+      await response.json();
 
-      const items = Array.isArray(data[lang])
-        ? data[lang].slice(0, 5)
+    const items =
+      Array.isArray(data[lang])
+        ? data[lang]
         : [];
 
-      if (items.length === 0) {
-        throw new Error("ไม่พบข่าว");
-      }
+    if (!items.length) {
+      throw new Error(
+        "ไม่พบข่าว"
+      );
+    }
 
-      grid.innerHTML = items.map(item => {
+    grid.innerHTML =
+      items.map(item => {
 
-        const date = item.pubDate
-          ? new Date(item.pubDate)
-          : null;
+        const date =
+          new Date(item.pubDate);
 
-        const dateStr = date && !isNaN(date)
-          ? date.toLocaleDateString("th-TH", {
+        const dateStr =
+          date.toLocaleDateString(
+            "th-TH",
+            {
               day: "numeric",
               month: "short",
               year: "numeric"
-            })
-          : "";
+            }
+          );
 
-        const timeStr = date && !isNaN(date)
-          ? date.toLocaleTimeString("th-TH", {
+        const timeStr =
+          date.toLocaleTimeString(
+            "th-TH",
+            {
               hour: "2-digit",
               minute: "2-digit"
-            })
-          : "";
+            }
+          );
 
-        const source = item.source || "Google News";
+        const desc =
+          item.description
+            ? item.description
+                .replace(
+                  /<[^>]*>/g,
+                  ""
+                )
+                .slice(0, 120) + "…"
+            : "";
+
+        const source =
+          item.source || "";
 
         return `
           <a
             class="news-card"
             href="${item.link}"
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noopener"
           >
+
             <div class="news-card-body">
 
               <p class="news-source">
@@ -190,12 +225,16 @@
                 ${item.title}
               </p>
 
+              <p class="news-desc">
+                ${desc}
+              </p>
+
             </div>
 
             <div class="news-card-foot">
 
               <span class="news-date">
-                ${dateStr}${timeStr ? " · " + timeStr : ""}
+                ${dateStr} · ${timeStr}
               </span>
 
               <span class="news-read">
@@ -203,42 +242,62 @@
               </span>
 
             </div>
+
           </a>
         `;
+
       }).join("");
 
-    } catch (err) {
+  } catch (error) {
 
-      console.error("NEWS ERROR:", err);
+    console.error(
+      "NEWS ERROR:",
+      error
+    );
 
-      grid.innerHTML = `
-        <div class="news-placeholder">
-          <span>
-            ⚠️ โหลดข่าวไม่สำเร็จ ลองใหม่อีกครั้ง
-          </span>
-        </div>
-      `;
-    }
+    grid.innerHTML = `
+      <div class="news-placeholder">
+        <span>
+          ⚠️ โหลดข่าวไม่สำเร็จ
+          ลองใหม่อีกครั้ง
+        </span>
+      </div>
+    `;
+
+  } finally {
 
     btn.disabled = false;
-    btn.textContent = "📰 ดึงข่าวล่าสุด";
+
+    btn.textContent =
+      "📰 ดึงข่าวล่าสุด";
+
   }
+}
 
 
-  // กดปุ่มเพื่อโหลดข่าวใหม่
-  document
-    .getElementById("fetchNewsBtn")
-    .addEventListener("click", fetchNews);
+/* ปุ่มดึงข่าว */
+
+document
+  .getElementById("fetchNewsBtn")
+  .addEventListener(
+    "click",
+    fetchNews
+  );
 
 
-  // เปลี่ยนภาษา → โหลดข่าวใหม่ทันที
-  document
-    .getElementById("newsLang")
-    .addEventListener("change", fetchNews);
+/* เปลี่ยนภาษา */
+
+document
+  .getElementById("newsLang")
+  .addEventListener(
+    "change",
+    fetchNews
+  );
 
 
-  // โหลดข่าวอัตโนมัติเมื่อเปิดเว็บไซต์
-  fetchNews();
+/* โหลดข่าวตอนเปิดเว็บ */
+
+fetchNews();
 
 </script>
 

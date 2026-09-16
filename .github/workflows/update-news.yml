@@ -1,0 +1,116 @@
+name: Update Oil News
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-news:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch Google News RSS
+        run: |
+          python3 <<'PY'
+          import json
+          import urllib.request
+          import xml.etree.ElementTree as ET
+          from email.utils import parsedate_to_datetime
+          from datetime import datetime, timezone
+
+          FEEDS = {
+              "th": "https://news.google.com/rss/search?q=WTI+น้ำมันดิบ+ราคาน้ำมัน+OPEC+when:3d&hl=th&gl=TH&ceid=TH:th",
+              "en": "https://news.google.com/rss/search?q=WTI+crude+oil+oil+price+OPEC+when:3d&hl=en-US&gl=US&ceid=US:en"
+          }
+
+          def fetch_feed(url):
+              req = urllib.request.Request(
+                  url,
+                  headers={
+                      "User-Agent": "Mozilla/5.0"
+                  }
+              )
+
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  xml_data = response.read()
+
+              root = ET.fromstring(xml_data)
+
+              articles = []
+
+              for item in root.findall(".//item"):
+                  title = item.findtext("title", "").strip()
+                  link = item.findtext("link", "").strip()
+                  pub_date = item.findtext("pubDate", "").strip()
+
+                  source_element = item.find("source")
+                  source = ""
+
+                  if source_element is not None:
+                      source = (source_element.text or "").strip()
+
+                  if not title or not link:
+                      continue
+
+                  try:
+                      dt = parsedate_to_datetime(pub_date)
+                      if dt.tzinfo is None:
+                          dt = dt.replace(tzinfo=timezone.utc)
+
+                      iso_date = dt.astimezone(timezone.utc).isoformat()
+                  except Exception:
+                      iso_date = pub_date
+
+                  articles.append({
+                      "title": title,
+                      "link": link,
+                      "pubDate": iso_date,
+                      "source": source
+                  })
+
+              articles.sort(
+                  key=lambda x: x["pubDate"],
+                  reverse=True
+              )
+
+              return articles[:5]
+
+
+          news = {
+              "updatedAt": datetime.now(timezone.utc).isoformat(),
+              "th": fetch_feed(FEEDS["th"]),
+              "en": fetch_feed(FEEDS["en"])
+          }
+
+          with open("news.json", "w", encoding="utf-8") as f:
+              json.dump(
+                  news,
+                  f,
+                  ensure_ascii=False,
+                  indent=2
+              )
+
+          print("Updated news.json")
+          print(json.dumps(news, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Commit updated news
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add news.json
+
+          if git diff --cached --quiet; then
+            echo "No news changes"
+          else
+            git commit -m "Update oil news"
+            git push
+          fi

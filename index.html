@@ -112,64 +112,426 @@
 
 <script>
 // ======= NEWS RSS FETCH =======
+c<script>
+/* =========================================================
+   NEWS RSS
+   ========================================================= */
+
 const RSS_FEEDS = {
-  th: "https://news.google.com/rss/search?q=ราคาน้ำมัน+WTI+น้ำมันดิบ&hl=th&gl=TH&ceid=TH:th",
-  en: "https://news.google.com/rss/search?q=WTI+crude+oil+price+OPEC&hl=en-US&gl=US&ceid=US:en"
+
+  th:
+    "https://news.google.com/rss/search?q=ราคาน้ำมัน+WTI+น้ำมันดิบ&hl=th&gl=TH&ceid=TH:th",
+
+  en:
+    "https://news.google.com/rss/search?q=WTI+crude+oil+price+OPEC&hl=en-US&gl=US&ceid=US:en"
+
 };
-const RSS_PROXY = "https://api.rss2json.com/v1/api.json?rss_url=";
+
+
+const RSS_PROXY =
+  "https://api.rss2json.com/v1/api.json?rss_url=";
+
+
+/* =========================================================
+   FETCH NEWS
+   ========================================================= */
 
 async function fetchNews() {
-  const btn = document.getElementById("fetchNewsBtn");
-  const grid = document.getElementById("newsGrid");
-  const lang = document.getElementById("newsLang").value;
 
-  btn.disabled = true;
-  btn.textContent = "⏳ กำลังโหลด…";
-  grid.innerHTML = `<div class="news-placeholder"><span>กำลังดึงข่าว…</span></div>`;
+  const btn =
+    document.getElementById(
+      "fetchNewsBtn"
+    );
 
-  try {
-    const url = RSS_PROXY + encodeURIComponent(RSS_FEEDS[lang]);
-    const res = await fetch(url);
-    const data = await res.json();
+  const grid =
+    document.getElementById(
+      "newsGrid"
+    );
 
-    if (!data.items || data.items.length === 0) throw new Error("ไม่พบข่าว");
+  const lang =
+    document.getElementById(
+      "newsLang"
+    ).value;
 
-    const items = data.items.slice(0, 9); // แสดงสูงสุด 9 ข่าว
-    grid.innerHTML = items.map(item => {
-      const date = new Date(item.pubDate);
-      const dateStr = date.toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
-      const timeStr = date.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
-      // ตัดข้อความ description ให้สั้น
-      const desc = item.description
-        ? item.description.replace(/<[^>]*>/g, "").slice(0, 120) + "…"
-        : "";
-      // แหล่งข่าว: ดึงจาก source หรือ title
-      const source = item.source || "";
-      return `
-        <a class="news-card" href="${item.link}" target="_blank" rel="noopener">
-          <div class="news-card-body">
-            <p class="news-source">${source}</p>
-            <p class="news-headline">${item.title}</p>
-            <p class="news-desc">${desc}</p>
-          </div>
-          <div class="news-card-foot">
-            <span class="news-date">${dateStr} · ${timeStr}</span>
-            <span class="news-read">อ่านต่อ →</span>
-          </div>
-        </a>`;
-    }).join("");
 
-  } catch (err) {
-    grid.innerHTML = `<div class="news-placeholder"><span>⚠️ โหลดข่าวไม่สำเร็จ ลองใหม่อีกครั้ง</span></div>`;
+  if (!btn || !grid) {
+    return;
   }
 
+
+  /* -------------------------------------------------------
+     Loading
+     ------------------------------------------------------- */
+
+  btn.disabled = true;
+
+  btn.textContent =
+    "⏳ กำลังโหลดข่าว…";
+
+
+  grid.innerHTML = `
+
+    <div class="news-placeholder">
+
+      <span>
+        กำลังดึงข่าวล่าสุด…
+      </span>
+
+    </div>
+
+  `;
+
+
+  try {
+
+    /* -----------------------------------------------------
+       RSS URL
+       ----------------------------------------------------- */
+
+    const feed =
+      RSS_FEEDS[lang];
+
+
+    /*
+     * เพิ่ม timestamp ทุกครั้ง
+     * เพื่อป้องกัน browser / proxy cache
+     */
+
+    const cacheBust =
+      Date.now();
+
+
+    const url =
+      RSS_PROXY +
+      encodeURIComponent(feed) +
+      "&_=" +
+      cacheBust;
+
+
+    /* -----------------------------------------------------
+       FETCH
+       ----------------------------------------------------- */
+
+    const res =
+      await fetch(
+        url,
+        {
+          method: "GET",
+
+          cache: "no-store",
+
+          headers: {
+            "Cache-Control":
+              "no-cache, no-store, max-age=0"
+          }
+        }
+      );
+
+
+    if (!res.ok) {
+
+      throw new Error(
+        "HTTP " + res.status
+      );
+    }
+
+
+    const data =
+      await res.json();
+
+
+    /* -----------------------------------------------------
+       CHECK DATA
+       ----------------------------------------------------- */
+
+    if (
+      !data ||
+      !data.items ||
+      !data.items.length
+    ) {
+
+      throw new Error(
+        "ไม่พบข่าว"
+      );
+    }
+
+
+    /* -----------------------------------------------------
+       SORT BY NEWEST
+       ----------------------------------------------------- */
+
+    const items =
+      [...data.items]
+
+        .sort(
+          (a, b) => {
+
+            const dateA =
+              new Date(
+                a.pubDate
+              ).getTime();
+
+            const dateB =
+              new Date(
+                b.pubDate
+              ).getTime();
+
+            return dateB - dateA;
+          }
+        )
+
+        .slice(
+          0,
+          9
+        );
+
+
+    /* -----------------------------------------------------
+       RENDER
+       ----------------------------------------------------- */
+
+    grid.innerHTML =
+
+      items
+        .map(
+          item => {
+
+            const date =
+              new Date(
+                item.pubDate
+              );
+
+
+            const dateStr =
+              date.toLocaleDateString(
+                "th-TH",
+                {
+                  day:
+                    "numeric",
+
+                  month:
+                    "short",
+
+                  year:
+                    "numeric"
+                }
+              );
+
+
+            const timeStr =
+              date.toLocaleTimeString(
+                "th-TH",
+                {
+                  hour:
+                    "2-digit",
+
+                  minute:
+                    "2-digit"
+                }
+              );
+
+
+            /* -------------------------------------------
+               DESCRIPTION
+               ------------------------------------------- */
+
+            const desc =
+              item.description
+
+                ? item.description
+                    .replace(
+                      /<[^>]*>/g,
+                      ""
+                    )
+                    .replace(
+                      /&nbsp;/g,
+                      " "
+                    )
+                    .trim()
+                    .slice(
+                      0,
+                      120
+                    ) + "…"
+
+                : "";
+
+
+            /* -------------------------------------------
+               SOURCE
+               ------------------------------------------- */
+
+            const source =
+              item.source ||
+              "Google News";
+
+
+            /* -------------------------------------------
+               IMAGE
+               ------------------------------------------- */
+
+            let image =
+              item.thumbnail ||
+              "";
+
+
+            if (!image) {
+
+              image =
+                item.enclosure &&
+                item.enclosure.link
+                  ? item.enclosure.link
+                  : "";
+            }
+
+
+            /* -------------------------------------------
+               CARD
+               ------------------------------------------- */
+
+            return `
+
+              <a
+                class="news-card"
+                href="${item.link}"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+
+                ${
+                  image
+                    ? `
+                      <div
+                        class="news-card-image"
+                        style="
+                          background-image:
+                          url('${image}');
+                        "
+                      ></div>
+                    `
+                    : ""
+                }
+
+
+                <div
+                  class="news-card-body"
+                >
+
+                  <p
+                    class="news-source"
+                  >
+                    ${source}
+                  </p>
+
+
+                  <p
+                    class="news-headline"
+                  >
+                    ${item.title}
+                  </p>
+
+
+                  <p
+                    class="news-desc"
+                  >
+                    ${desc}
+                  </p>
+
+                </div>
+
+
+                <div
+                  class="news-card-foot"
+                >
+
+                  <span
+                    class="news-date"
+                  >
+                    ${dateStr}
+                    ·
+                    ${timeStr}
+                  </span>
+
+
+                  <span
+                    class="news-read"
+                  >
+                    อ่านต่อ →
+                  </span>
+
+                </div>
+
+              </a>
+
+            `;
+          }
+        )
+        .join("");
+
+
+  } catch (err) {
+
+    console.error(
+      "NEWS ERROR:",
+      err
+    );
+
+
+    grid.innerHTML = `
+
+      <div
+        class="news-placeholder"
+      >
+
+        <span>
+          ⚠️ โหลดข่าวไม่สำเร็จ
+          ลองกดใหม่อีกครั้ง
+        </span>
+
+      </div>
+
+    `;
+
+  }
+
+
+  /* -------------------------------------------------------
+     RESET BUTTON
+     ------------------------------------------------------- */
+
   btn.disabled = false;
-  btn.textContent = "📰 ดึงข่าวล่าสุด";
+
+  btn.textContent =
+    "📰 ดึงข่าวล่าสุด";
+
 }
 
-document.getElementById("fetchNewsBtn").addEventListener("click", fetchNews);
-// โหลดข่าวอัตโนมัติตอนเปิดหน้า
+
+/* =========================================================
+   BUTTON
+   ========================================================= */
+
+const fetchNewsBtn =
+  document.getElementById(
+    "fetchNewsBtn"
+  );
+
+
+if (fetchNewsBtn) {
+
+  fetchNewsBtn.addEventListener(
+    "click",
+    fetchNews
+  );
+
+}
+
+
+/* =========================================================
+   LOAD NEWS WHEN PAGE OPENS
+   ========================================================= */
+
 fetchNews();
+
 </script>
 
 </body></html>

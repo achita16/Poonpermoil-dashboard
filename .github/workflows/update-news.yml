@@ -25,10 +25,34 @@ jobs:
           from email.utils import parsedate_to_datetime
           from datetime import datetime, timezone
 
-          FEEDS = {
-              "th": "https://news.google.com/rss/search?q=WTI+น้ำมันดิบ+ราคาน้ำมัน+OPEC+when:3d&hl=th&gl=TH&ceid=TH:th",
-              "en": "https://news.google.com/rss/search?q=WTI+crude+oil+oil+price+OPEC+when:3d&hl=en-US&gl=US&ceid=US:en"
-          }
+          from urllib.parse import urlencode
+
+def make_google_news_url(query, hl, gl, ceid):
+    params = {
+        "q": query,
+        "hl": hl,
+        "gl": gl,
+        "ceid": ceid
+    }
+
+    return "https://news.google.com/rss/search?" + urlencode(params)
+
+
+FEEDS = {
+    "th": make_google_news_url(
+        "WTI น้ำมันดิบ ราคาน้ำมัน OPEC when:3d",
+        "th",
+        "TH",
+        "TH:th"
+    ),
+
+    "en": make_google_news_url(
+        "WTI crude oil oil price OPEC when:3d",
+        "en-US",
+        "US",
+        "US:en"
+    )
+}
 
           def fetch_feed(url):
               req = urllib.request.Request(

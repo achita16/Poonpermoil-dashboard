@@ -111,573 +111,134 @@
 <script src="app-2.js"></script>
 
 <script>
-/* =====================================================
-   OIL NEWS
-   Google News RSS
-   FREE / NO API KEY
-   แสดง 5 ข่าวล่าสุด
-===================================================== */
-
-const NEWS_FEEDS = {
-
-  th:
-    "https://news.google.com/rss/search?q=WTI+น้ำมันดิบ+ราคาน้ำมัน+OPEC+when:1d&hl=th&gl=TH&ceid=TH:th",
-
-  en:
-    "https://news.google.com/rss/search?q=WTI+crude+oil+oil+price+OPEC+when:1d&hl=en-US&gl=US&ceid=US:en"
-
-};
-
-
-/* =====================================================
-   RSS PROXIES
-   ใช้ตัวแรกก่อน ถ้าไม่ได้ค่อยลองตัวสำรอง
-===================================================== */
-
-const NEWS_PROXIES = [
-
-  function(feed) {
-    return (
-      "https://api.allorigins.win/raw?url=" +
-      encodeURIComponent(feed) +
-      "&_=" +
-      Date.now()
-    );
-  },
-
-  function(feed) {
-    return (
-      "https://api.rss2json.com/v1/api.json?rss_url=" +
-      encodeURIComponent(feed) +
-      "&_=" +
-      Date.now()
-    );
-  }
-
-];
-
-
-/* =====================================================
-   FETCH NEWS
-===================================================== */
-
-async function fetchNews() {
-
-  const btn =
-    document.getElementById("fetchNewsBtn");
-
-  const grid =
-    document.getElementById("newsGrid");
-
-  const lang =
-    document.getElementById("newsLang").value;
-
-
-  btn.disabled = true;
-
-  btn.textContent =
-    "⏳ กำลังโหลด...";
-
-
-  grid.innerHTML = `
-    <div class="news-placeholder">
-      <span>
-        กำลังดึงข่าวล่าสุด...
-      </span>
-    </div>
-  `;
-
-
-  const feed =
-    NEWS_FEEDS[lang];
-
-
-  let articles = [];
-
-  let lastError = null;
-
-
-  /* =================================================
-     ลอง Proxy ทีละตัว
-  ================================================= */
-
-  for (
-    let i = 0;
-    i < NEWS_PROXIES.length;
-    i++
-  ) {
-
-    try {
-
-      const url =
-        NEWS_PROXIES[i](feed);
-
-
-      console.log(
-        "NEWS PROXY",
-        i + 1,
-        url
-      );
-
-
-      const response =
-        await fetch(url, {
-          method: "GET",
-          cache: "no-store"
-        });
-
-
-      if (!response.ok) {
-
-        throw new Error(
-          "HTTP " +
-          response.status
-        );
-
-      }
-
-
-      /* =================================================
-         Proxy ตัวที่ 2 = rss2json
-      ================================================= */
-
-      if (i === 1) {
-
-        const data =
-          await response.json();
-
-
-        if (
-          !data ||
-          data.status !== "ok" ||
-          !data.items ||
-          !data.items.length
-        ) {
-
-          throw new Error(
-            "RSS2JSON ไม่พบข่าว"
-          );
-
-        }
-
-
-        articles =
-          data.items.map(item => ({
-
-            title:
-              item.title || "",
-
-            link:
-              item.link || "#",
-
-            pubDate:
-              item.pubDate || "",
-
-            source:
-              item.source || ""
-
-          }));
-
-
-      }
-
-
-      /* =================================================
-         Proxy ตัวที่ 1 = XML RSS
-      ================================================= */
-
-      else {
-
-        const xml =
-          await response.text();
-
-
-        if (!xml) {
-
-          throw new Error(
-            "RSS ว่าง"
-          );
-
-        }
-
-
-        const parser =
-          new DOMParser();
-
-
-        const xmlDoc =
-          parser.parseFromString(
-            xml,
-            "text/xml"
-          );
-
-
-        const parserError =
-          xmlDoc.querySelector(
-            "parsererror"
-          );
-
-
-        if (parserError) {
-
-          throw new Error(
-            "อ่าน RSS ไม่ได้"
-          );
-
-        }
-
-
-        const items =
-          Array.from(
-            xmlDoc.querySelectorAll(
-              "item"
-            )
-          );
-
-
-        articles =
-          items.map(item => {
-
-            const getText =
-              selector => {
-
-                const el =
-                  item.querySelector(
-                    selector
-                  );
-
-                return el
-                  ? el.textContent.trim()
-                  : "";
-
-              };
-
-
-            return {
-
-              title:
-                getText("title"),
-
-              link:
-                getText("link"),
-
-              pubDate:
-                getText("pubDate"),
-
-              source:
-                getText("source")
-
-            };
-
-          });
-
-      }
-
-
-      if (
-        articles &&
-        articles.length
-      ) {
-
-        console.log(
-          "NEWS SUCCESS",
-          articles
-        );
-
-        break;
-
-      }
-
-    }
-
-    catch (error) {
-
-      console.warn(
-        "NEWS PROXY " +
-        (i + 1) +
-        " FAILED:",
-        error
-      );
-
-      lastError =
-        error;
-
-    }
-
-  }
-
-
-  /* =================================================
-     ถ้ายังไม่มีข่าว
-  ================================================= */
-
-  if (
-    !articles ||
-    !articles.length
-  ) {
-
-    console.error(
-      "NEWS ERROR:",
-      lastError
-    );
-
-
+  // ======= NEWS FROM news.json =======
+
+  async function fetchNews() {
+    const btn = document.getElementById("fetchNewsBtn");
+    const grid = document.getElementById("newsGrid");
+    const lang = document.getElementById("newsLang").value;
+
+    btn.disabled = true;
+    btn.textContent = "⏳ กำลังโหลด…";
     grid.innerHTML = `
       <div class="news-placeholder">
-
-        <span>
-          ⚠️ โหลดข่าวไม่สำเร็จ
-        </span>
-
-        <small
-          style="
-            display:block;
-            margin-top:8px;
-            opacity:.6;
-          "
-        >
-          กรุณาลองใหม่อีกครั้ง
-        </small>
-
+        <span>กำลังโหลดข่าว…</span>
       </div>
     `;
 
+    try {
+      // อ่าน news.json จาก GitHub Pages
+      // เติม timestamp เพื่อป้องกัน browser cache
+      const response = await fetch(
+        "news.json?ts=" + Date.now(),
+        {
+          cache: "no-store"
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("HTTP " + response.status);
+      }
+
+      const data = await response.json();
+
+      const items = Array.isArray(data[lang])
+        ? data[lang].slice(0, 5)
+        : [];
+
+      if (items.length === 0) {
+        throw new Error("ไม่พบข่าว");
+      }
+
+      grid.innerHTML = items.map(item => {
+
+        const date = item.pubDate
+          ? new Date(item.pubDate)
+          : null;
+
+        const dateStr = date && !isNaN(date)
+          ? date.toLocaleDateString("th-TH", {
+              day: "numeric",
+              month: "short",
+              year: "numeric"
+            })
+          : "";
+
+        const timeStr = date && !isNaN(date)
+          ? date.toLocaleTimeString("th-TH", {
+              hour: "2-digit",
+              minute: "2-digit"
+            })
+          : "";
+
+        const source = item.source || "Google News";
+
+        return `
+          <a
+            class="news-card"
+            href="${item.link}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <div class="news-card-body">
+
+              <p class="news-source">
+                ${source}
+              </p>
+
+              <p class="news-headline">
+                ${item.title}
+              </p>
+
+            </div>
+
+            <div class="news-card-foot">
+
+              <span class="news-date">
+                ${dateStr}${timeStr ? " · " + timeStr : ""}
+              </span>
+
+              <span class="news-read">
+                อ่านต่อ →
+              </span>
+
+            </div>
+          </a>
+        `;
+      }).join("");
+
+    } catch (err) {
+
+      console.error("NEWS ERROR:", err);
+
+      grid.innerHTML = `
+        <div class="news-placeholder">
+          <span>
+            ⚠️ โหลดข่าวไม่สำเร็จ ลองใหม่อีกครั้ง
+          </span>
+        </div>
+      `;
+    }
 
     btn.disabled = false;
-
-    btn.textContent =
-      "📰 ดึงข่าวล่าสุด";
-
-    return;
-
+    btn.textContent = "📰 ดึงข่าวล่าสุด";
   }
 
 
-  /* =================================================
-     เรียงข่าวใหม่ → เก่า
-  ================================================= */
+  // กดปุ่มเพื่อโหลดข่าวใหม่
+  document
+    .getElementById("fetchNewsBtn")
+    .addEventListener("click", fetchNews);
 
-  articles.sort(
-    (a, b) => {
 
-      const dateA =
-        new Date(
-          a.pubDate || 0
-        );
+  // เปลี่ยนภาษา → โหลดข่าวใหม่ทันที
+  document
+    .getElementById("newsLang")
+    .addEventListener("change", fetchNews);
 
-      const dateB =
-        new Date(
-          b.pubDate || 0
-        );
 
-      return dateB - dateA;
-
-    }
-  );
-
-
-  /* =================================================
-     เอาแค่ 5 ข่าว
-  ================================================= */
-
-  articles =
-    articles.slice(0, 5);
-
-
-  /* =================================================
-     สร้างข่าวบนหน้าเว็บ
-  ================================================= */
-
-  grid.innerHTML =
-    articles.map(article => {
-
-
-      /* -------------------------
-         วันที่
-      ------------------------- */
-
-      let dateText =
-        "";
-
-
-      if (article.pubDate) {
-
-        const date =
-          new Date(
-            article.pubDate
-          );
-
-
-        if (
-          !isNaN(
-            date.getTime()
-          )
-        ) {
-
-          dateText =
-            date.toLocaleDateString(
-              "th-TH",
-              {
-                day: "numeric",
-                month: "short",
-                year: "numeric"
-              }
-            )
-            +
-            " · "
-            +
-            date.toLocaleTimeString(
-              "th-TH",
-              {
-                hour: "2-digit",
-                minute: "2-digit"
-              }
-            );
-
-        }
-
-      }
-
-
-      /* -------------------------
-         Source
-      ------------------------- */
-
-      let source =
-        article.source ||
-        "";
-
-
-      /*
-       * ถ้า source เป็น XML
-       * เช่น <source url="...">
-       * ให้เอาเฉพาะชื่อ
-       */
-
-      source =
-        source
-          .replace(
-            /<[^>]*>/g,
-            ""
-          )
-          .trim();
-
-
-      if (!source) {
-
-        try {
-
-          source =
-            new URL(
-              article.link
-            ).hostname
-              .replace(
-                "www.",
-                ""
-              );
-
-        }
-
-        catch (e) {
-
-          source =
-            "Oil News";
-
-        }
-
-      }
-
-
-      /* -------------------------
-         Title
-      ------------------------- */
-
-      const title =
-        article.title ||
-        "ข่าวน้ำมันล่าสุด";
-
-
-      /* -------------------------
-         Link
-      ------------------------- */
-
-      const link =
-        article.link ||
-        "#";
-
-
-      return `
-
-        <a
-          class="news-card"
-          href="${link}"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-
-          <div class="news-card-body">
-
-            <p class="news-source">
-              ${source}
-            </p>
-
-            <p class="news-headline">
-              ${title}
-            </p>
-
-          </div>
-
-
-          <div class="news-card-foot">
-
-            <span class="news-date">
-              ${dateText}
-            </span>
-
-            <span class="news-read">
-              อ่านต่อ →
-            </span>
-
-          </div>
-
-        </a>
-
-      `;
-
-    }).join("");
-
-
-  /* =================================================
-     คืนค่าปุ่ม
-  ================================================= */
-
-  btn.disabled = false;
-
-  btn.textContent =
-    "📰 ดึงข่าวล่าสุด";
-
-}
-
-
-/* =====================================================
-   BUTTON
-===================================================== */
-
-document
-  .getElementById(
-    "fetchNewsBtn"
-  )
-  .addEventListener(
-    "click",
-    fetchNews
-  );
-
-
-/* =====================================================
-   LOAD NEWS
-===================================================== */
-
-fetchNews();
+  // โหลดข่าวอัตโนมัติเมื่อเปิดเว็บไซต์
+  fetchNews();
 
 </script>
 

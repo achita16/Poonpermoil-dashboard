@@ -111,10 +111,9 @@
 <script src="app-2.js"></script>
 
 <script>
-/<script>
 /* =========================================
    OIL NEWS
-   GDELT - FREE / NO API KEY
+   FREE - GDELT
 ========================================= */
 
 const GDELT_API =
@@ -136,229 +135,156 @@ async function fetchNews() {
 
   try {
 
-    const query =
-      'WTI OR "crude oil" OR "oil price" OR OPEC';
-
-    const params = new URLSearchParams();
-
-    params.set("query", query);
-    params.set("mode", "artlist");
-    params.set("maxrecords", "20");
-    params.set("timespan", "48h");
-    params.set("sort", "datedesc");
-    params.set("format", "json");
+    const params = new URLSearchParams({
+      query: "WTI OR crude oil OR oil price OR OPEC",
+      mode: "artlist",
+      maxrecords: "5",
+      timespan: "48h",
+      sort: "datedesc",
+      format: "json"
+    });
 
     const url =
       GDELT_API + "?" + params.toString();
-
-    console.log("GDELT:", url);
 
     const response = await fetch(url, {
       cache: "no-store"
     });
 
     if (!response.ok) {
-      throw new Error(
-        "HTTP " + response.status
-      );
+      throw new Error("HTTP " + response.status);
     }
 
     const data = await response.json();
 
-    console.log("GDELT DATA:", data);
+    console.log("GDELT:", data);
 
-    if (
-      !data ||
-      !Array.isArray(data.articles)
-    ) {
-      throw new Error(
-        "ไม่พบข้อมูลข่าว"
-      );
+    if (!data.articles || !data.articles.length) {
+      throw new Error("ไม่พบข่าวล่าสุด");
     }
 
-    if (data.articles.length === 0) {
-      throw new Error(
-        "ไม่มีข่าวในช่วง 48 ชั่วโมงล่าสุด"
-      );
-    }
+    const articles = data.articles.slice(0, 5);
 
-    /* เอาแค่ 5 ข่าวล่าสุด */
-    const articles =
-      data.articles.slice(0, 5);
+    grid.innerHTML = articles.map(article => {
 
+      const title =
+        article.title || "ข่าวน้ำมัน";
 
-    grid.innerHTML =
-      articles.map(article => {
+      const link =
+        article.url || "#";
 
-        const title =
-          article.title ||
-          "ข่าวน้ำมันล่าสุด";
+      const source =
+        article.domain || "Oil News";
 
-        const link =
-          article.url ||
-          "#";
+      let dateText = "";
 
-        const source =
-          article.domain ||
-          "Oil News";
+      if (article.seendate) {
 
-        let dateText = "";
+        const raw = article.seendate;
 
-        try {
+        const date = new Date(
+          raw.substring(0, 4) + "-" +
+          raw.substring(4, 6) + "-" +
+          raw.substring(6, 8) + "T" +
+          raw.substring(9, 11) + ":" +
+          raw.substring(11, 13) + ":" +
+          raw.substring(13, 15) + "Z"
+        );
 
-          let raw =
-            article.seendate ||
-            article.date ||
-            "";
+        if (!isNaN(date.getTime())) {
 
-          /*
-           * GDELT format:
-           * 20260916T083000Z
-           */
-
-          if (
-            /^\d{8}T\d{6}Z$/.test(raw)
-          ) {
-
-            raw =
-              raw.replace(
-                /^(\d{4})(\d{2})(\d{2})T/,
-                "$1-$2-$3T"
-              );
-
-            raw =
-              raw.replace(
-                "Z",
-                ":00Z"
-              );
-          }
-
-          const date =
-            new Date(raw);
-
-          if (!isNaN(date.getTime())) {
-
-            dateText =
-              date.toLocaleDateString(
-                "th-TH",
-                {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric"
-                }
-              )
-              +
-              " · "
-              +
-              date.toLocaleTimeString(
-                "th-TH",
-                {
-                  hour: "2-digit",
-                  minute: "2-digit"
-                }
-              );
-
-          }
-
-        } catch (e) {
-
-          console.warn(
-            "Date error",
-            e
-          );
-
+          dateText =
+            date.toLocaleDateString(
+              "th-TH",
+              {
+                day: "numeric",
+                month: "short",
+                year: "numeric"
+              }
+            ) +
+            " · " +
+            date.toLocaleTimeString(
+              "th-TH",
+              {
+                hour: "2-digit",
+                minute: "2-digit"
+              }
+            );
         }
+      }
 
+      return `
+        <a
+          class="news-card"
+          href="${link}"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
 
-        return `
+          <div class="news-card-body">
 
-          <a
-            class="news-card"
-            href="${link}"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+            <p class="news-source">
+              ${source}
+            </p>
 
-            <div class="news-card-body">
+            <p class="news-headline">
+              ${title}
+            </p>
 
-              <p class="news-source">
-                ${source}
-              </p>
+          </div>
 
-              <p class="news-headline">
-                ${title}
-              </p>
+          <div class="news-card-foot">
 
-            </div>
+            <span class="news-date">
+              ${dateText}
+            </span>
 
-            <div class="news-card-foot">
+            <span class="news-read">
+              อ่านต่อ →
+            </span>
 
-              <span class="news-date">
-                ${dateText}
-              </span>
+          </div>
 
-              <span class="news-read">
-                อ่านต่อ →
-              </span>
+        </a>
+      `;
 
-            </div>
-
-          </a>
-
-        `;
-
-      }).join("");
-
+    }).join("");
 
   } catch (error) {
 
-    console.error(
-      "NEWS ERROR:",
-      error
-    );
+    console.error("NEWS ERROR:", error);
 
     grid.innerHTML = `
-
       <div class="news-placeholder">
-
         <span>
           ⚠️ โหลดข่าวไม่สำเร็จ
         </span>
-
-        <small
-          style="
-            display:block;
-            margin-top:8px;
-            opacity:.6;
-          "
-        >
+        <small style="
+          display:block;
+          margin-top:8px;
+          opacity:.6;
+        ">
           ${error.message}
         </small>
-
       </div>
-
     `;
 
+  } finally {
+
+    btn.disabled = false;
+    btn.textContent = "📰 ดึงข่าวล่าสุด";
+
   }
-
-  btn.disabled = false;
-
-  btn.textContent =
-    "📰 ดึงข่าวล่าสุด";
-
 }
 
 
-/* ปุ่ม */
+/* ปุ่มดึงข่าว */
 document
   .getElementById("fetchNewsBtn")
-  .addEventListener(
-    "click",
-    fetchNews
-  );
+  .addEventListener("click", fetchNews);
 
 
-/* โหลดตอนเปิดเว็บ */
+/* โหลดข่าวตอนเปิดเว็บ */
 fetchNews();
 
 </script>

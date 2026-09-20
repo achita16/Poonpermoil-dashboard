@@ -1204,19 +1204,32 @@ function renderProducts() {
 function renderSlots() {
 
   const area =
-    document.querySelector(
-      "#loadSlots"
-    );
-
+    document.querySelector("#loadSlots");
 
   if (!area) {
     return;
   }
 
+  area.innerHTML = "";
 
-  area.innerHTML =
-    "";
+  // ------------------------------------------
+  // ขนาดรถปัจจุบัน
+  // ------------------------------------------
 
+  const truckSize =
+    document.querySelector("#truckSize");
+
+  const capacity =
+    truckSize
+      ? num(truckSize.value)
+      : 20000;
+
+  const truck =
+    TRUCKS[capacity] || TRUCKS[20000];
+
+  // ------------------------------------------
+  // รวม Load
+  // ------------------------------------------
 
   const totalLoad =
     loadConfig.reduce(
@@ -1225,137 +1238,148 @@ function renderSlots() {
       0
     );
 
+  // ------------------------------------------
+  // อัปเดตข้อมูลด้านบน
+  // ------------------------------------------
 
-  const truckSize =
-    document.querySelector(
-      "#truckSize"
-    );
+  const loadTotal =
+    document.querySelector("#loadTotal");
 
-
-  if (truckSize) {
-
-    truckSize.value =
-      "20000";
-  }
-
-
-  loadConfig.forEach(
-    (slot, index) => {
-
-      const options =
-        PRODUCTS.map(
-          product => `
-
-            <option
-              value="${product.id}"
-              ${
-                slot.product ===
-                product.id
-                  ? "selected"
-                  : ""
-              }
-            >
-              ${product.code}
-            </option>
-
-          `
-        ).join("");
-
-
-      const litresOptions = `
-
-        <option
-          value="0"
-          ${
-            num(slot.litres) === 0
-              ? "selected"
-              : ""
-          }
-        >
-          0 ลิตร
-        </option>
-
-
-        <option
-          value="3000"
-          ${
-            num(slot.litres) === 3000
-              ? "selected"
-              : ""
-          }
-        >
-          3,000 ลิตร
-        </option>
-
-
-        <option
-          value="4000"
-          ${
-            num(slot.litres) === 4000
-              ? "selected"
-              : ""
-          }
-        >
-          4,000 ลิตร
-        </option>
-
-      `;
-
-
-      area.insertAdjacentHTML(
-        "beforeend",
-
-        `
-
-        <div class="load-slot">
-
-          <span class="slot-number">
-            ช่อง ${index + 1}
-          </span>
-
-
-          <select
-            data-field="product"
-            data-index="${index}"
-          >
-
-            ${options}
-
-          </select>
-
-
-          <select
-            data-field="litres"
-            data-index="${index}"
-          >
-
-            ${litresOptions}
-
-          </select>
-
-        </div>
-
-        `
-      );
-    }
-  );
-
-
-  // ----------------------------------------------------------
-  // TOTAL LOAD
-  // ----------------------------------------------------------
-
-  const total =
-    document.querySelector(
-      "#loadTotal"
-    );
-
-
-  if (total) {
-
-    total.textContent =
+  if (loadTotal) {
+    loadTotal.textContent =
       `${fmt(totalLoad)} ลิตร`;
   }
+
+  const capacityRemaining =
+    document.querySelector(
+      "#capacityRemaining"
+    );
+
+  if (capacityRemaining) {
+    capacityRemaining.textContent =
+      `เหลือ ${fmt(
+        Math.max(capacity - totalLoad, 0)
+      )} ลิตร`;
+  }
+
+  const truckTypeLabel =
+    document.querySelector(
+      "#truckTypeLabel"
+    );
+
+  if (truckTypeLabel) {
+    truckTypeLabel.textContent =
+      truck.name;
+  }
+
+  const truckSlotLabel =
+    document.querySelector(
+      "#truckSlotLabel"
+    );
+
+  if (truckSlotLabel) {
+    truckSlotLabel.textContent =
+      `${truck.slots} ช่อง`;
+  }
+
+  const truckCapacityLabel =
+    document.querySelector(
+      "#truckCapacityLabel"
+    );
+
+  if (truckCapacityLabel) {
+    truckCapacityLabel.textContent =
+      fmt(capacity) + " ลิตร";
+  }
+
+  // ------------------------------------------
+  // สร้างช่องรถ
+  // ------------------------------------------
+
+  loadConfig
+    .slice(0, truck.slots)
+    .forEach(
+      (slot, index) => {
+
+        const options =
+          PRODUCTS.map(
+            product => `
+              <option
+                value="${product.id}"
+                ${
+                  slot.product === product.id
+                    ? "selected"
+                    : ""
+                }
+              >
+                ${product.code}
+              </option>
+            `
+          ).join("");
+
+        const litresOptions = `
+          <option
+            value="0"
+            ${
+              num(slot.litres) === 0
+                ? "selected"
+                : ""
+            }
+          >
+            0 ลิตร
+          </option>
+
+          <option
+            value="3000"
+            ${
+              num(slot.litres) === 3000
+                ? "selected"
+                : ""
+            }
+          >
+            3,000 ลิตร
+          </option>
+
+          <option
+            value="4000"
+            ${
+              num(slot.litres) === 4000
+                ? "selected"
+                : ""
+            }
+          >
+            4,000 ลิตร
+          </option>
+        `;
+
+        area.insertAdjacentHTML(
+          "beforeend",
+          `
+            <div class="load-slot">
+
+              <span class="slot-number">
+                ช่อง ${index + 1}
+              </span>
+
+              <select
+                data-field="product"
+                data-index="${index}"
+              >
+                ${options}
+              </select>
+
+              <select
+                data-field="litres"
+                data-index="${index}"
+              >
+                ${litresOptions}
+              </select>
+
+            </div>
+          `
+        );
+      }
+    );
 }
 
 

@@ -1347,7 +1347,7 @@ function renderSlots() {
 
   const total =
     document.querySelector(
-      "#totalLoad"
+      "#loadTotal"
     );
 
 

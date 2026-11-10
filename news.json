@@ -1,12 +1,33 @@
 {
-  "updatedAt": "2026-11-10T10:41:48.285475+00:00",
+  "updatedAt": "2026-11-10T18:25:24.748548+00:00",
   "th": [
+    {
+      "title": "ราคาน้ำมันโลกพุ่ง หลังเกิดเหตุโจมตีเรือบรรทุกน้ำมันในช่องแคบฮอร์มุซ - RYT9",
+      "link": "https://news.google.com/rss/articles/CBMiSkFVX3lxTFBLWmtaMTZMaXVRZ3ppZ21MczNTeHFKci12NWtfQ2ZxQ0pKaHJaUXlJRnhkSkx3UGpzUm5Cbm45WmhNMEdvMXpTMG9B?oc=5",
+      "description": "ราคาน้ำมันโลกพุ่ง หลังเกิดเหตุโจมตีเรือบรรทุกน้ำมันในช่องแคบฮอร์มุซ&nbsp;&nbsp;RYT9",
+      "source": "RYT9",
+      "pubDate": "2026-11-10T10:11:35+00:00"
+    },
+    {
+      "title": "ราคาน้ำมันเบรนต์อยู่ที่ 91 ดอลลาร์ หลังร่วง 5.85% เป้าหมายถัดไปที่ 98 หรือ 88 - FinanceFeeds",
+      "link": "https://news.google.com/rss/articles/CBMidEFVX3lxTE9STkoyam80U1dFNUcxODFqWGd3TmpadndjaXVVbzJraEszaGVHZ3ViVGxub2FRNXZtc0F0UFQtNmxyWlE4cFNvc252OTVvblRRX2pzUXRGendUZ2VoYUJPeE1QNnlobnpvcVpEaWI0ekJiTUk1?oc=5",
+      "description": "ราคาน้ำมันเบรนต์อยู่ที่ 91 ดอลลาร์ หลังร่วง 5.85% เป้าหมายถัดไปที่ 98 หรือ 88&nbsp;&nbsp;FinanceFeeds",
+      "source": "FinanceFeeds",
+      "pubDate": "2026-11-10T09:56:20+00:00"
+    },
     {
       "title": "น้ำมันดิบสหรัฐฯ หลุด $85 ต่อบาร์เรล หลัง Trump ชี้ไม่ต้องโจมตีอิหร่านเพิ่ม - Siam Blockchain",
       "link": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxPUVFrbXN5Mlh4dFlYYktKWGltNkNmT214Z3BMcVp0eDlIdW1BRnk1SE00dlhzZGlPakVUYk9FT1ZiNGN6ZVhNb2F5TE9LYzItbE1fYlZsVmg5MEk5bjNDdldlNmRKTmlseGk4bDZDanE2UGQ4YUlzVzZ5cnR0UXV1SndUQWV3b3k1?oc=5",
       "description": "น้ำมันดิบสหรัฐฯ หลุด $85 ต่อบาร์เรล หลัง Trump ชี้ไม่ต้องโจมตีอิหร่านเพิ่ม&nbsp;&nbsp;Siam Blockchain",
       "source": "Siam Blockchain",
-      "pubDate": "2026-11-10T09:28:34+00:00"
+      "pubDate": "2026-11-10T09:29:00+00:00"
+    },
+    {
+      "title": "น้ำมันดิบเบรนท์อ่อนตัว หลังความหวังข้อตกลงสหรัฐฯ–อิหร่านพลิกมุมมองอุปทาน: XBR ยังเผชิญแรงกดดัน - Traders Union",
+      "link": "https://news.google.com/rss/articles/CBMilwFBVV95cUxPUzBOZHFvMW9wRUJPZTByRV9NbXRVNUVXeDhnTUJsaEs4d2h2c2tJb0JGX1p1Qm1NeTRhSkZ3Y0tING9sRHpuRFNoWnNQcnMtbHphcWRaX2kxTWl1b1pfTkZTd1pmU05OakRGYy1sVHA5UUdLaXBsU0p4NDN5S0ZEamktSVctZ216OXhPRGV5NHVUMjVid0lN?oc=5",
+      "description": "น้ำมันดิบเบรนท์อ่อนตัว หลังความหวังข้อตกลงสหรัฐฯ–อิหร่านพลิกมุมมองอุปทาน: XBR ยังเผชิญแรงกดดัน&nbsp;&nbsp;Traders Union",
+      "source": "Traders Union",
+      "pubDate": "2026-11-10T09:17:47+00:00"
     },
     {
       "title": "Brent: ราคาน้ำมันดิบร่วงลงจากความหวังต่อความคืบหน้าทางการทูตกับอิหร่าน – Deutsche Bank - www.tmgm.com",
@@ -23,62 +44,34 @@
       "pubDate": "2026-11-10T08:48:31+00:00"
     },
     {
-      "title": "WTI เคลื่อนไหวอ่อนตัวต่ำกว่า 85 ดอลลาร์ ท่ามกลางความหวังว่าสหรัฐฯ และอิหร่านจะบรรลุข้อตกลง - www.tmgm.com",
-      "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxQZUNlOFY5Vy1XQTJoM0x0Z1Uyb1FKSnBUazhBVFJkWkRWSlU3OVlQakhYR3JKOGc3NUVCdWZGeEZuWmpZWkUzVDJQbmJRRUd1cFRWbDRkT3B5OW13VG5nQ1pGTnh0N3pVUnN0R3lfUXlyZEd3MHRnWUpaWnNLYlFhY1lkcVdTSEY0UDNBM3lyV1hiR1N0dW5GMlJ0T2pJTlplWGRzTDgtYk5Sd3ZGSnJFbkJGMFc?oc=5",
-      "description": "WTI เคลื่อนไหวอ่อนตัวต่ำกว่า 85 ดอลลาร์ ท่ามกลางความหวังว่าสหรัฐฯ และอิหร่านจะบรรลุข้อตกลง&nbsp;&nbsp;www.tmgm.com",
-      "source": "www.tmgm.com",
-      "pubDate": "2026-11-10T06:02:55+00:00"
-    },
-    {
-      "title": "น้ำมันโลกดิ่งแรง! WTI ร่วง 4.38% ลุ้นดีเซลไทยเลข 3 ใน 2 สัปดาห์ - Head Topics",
-      "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE9sTjQtZ3JDZWthM3hlOElXZjBGcXBVR2ttMUctZ2g2UzBySzA3ZkUzRFZNMDIyZWNVT2l3dVcwbk44dFZhY1Byd3Y1RTZJLVRaaHJRdmFDdU1xSW40UkctZktrQmxYQlB6WGp2bHFB?oc=5",
-      "description": "น้ำมันโลกดิ่งแรง! WTI ร่วง 4.38% ลุ้นดีเซลไทยเลข 3 ใน 2 สัปดาห์&nbsp;&nbsp;Head Topics",
-      "source": "Head Topics",
-      "pubDate": "2026-11-10T04:40:00+00:00"
-    },
-    {
-      "title": "น้ำมันโลกดิ่งเกือบ 6% หลังทรัมป์ส่งสัญญาณไม่โจมตีอิหร่านเพิ่ม - Businesstoday",
-      "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTFBkWFN3Y2hLM0pjOUhQczYzRGlueTR6MGNfbUdLbDl0NmZZODdCZVVYVFhJMWFXS3pDTkxra1BOYUdGNGtlaUdxRnZOVllCZHNlMnE5Tm1TOFZUdE9QZlk1Vzkxak1naWRwaVpsendn?oc=5",
-      "description": "น้ำมันโลกดิ่งเกือบ 6% หลังทรัมป์ส่งสัญญาณไม่โจมตีอิหร่านเพิ่ม&nbsp;&nbsp;Businesstoday",
-      "source": "Businesstoday",
-      "pubDate": "2026-11-10T02:54:54+00:00"
-    },
-    {
-      "title": "ราคาน้ำมันเชื้อเพลิงวันนี้ 10 พฤศจิกายน: ราคาน้ำมันโลกปรับลดลงอย่างมาก ราคาน้ำมันในประเทศจะปรับตัวในเร็วๆ นี้ - Vietnam.vn",
-      "link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxOUE84cUhFR25nUlY2NmxRZGd1SHp5bUtfZjBGX1pvRUlib0h6SWhrSXotR0ppNEM1MUg5WWVBMmszZllMZ3lHNGdHSzJ6UUlhUlM1UHRjRlQ0eHNJajZLMGxuRGR6Y2NtMDIzbVFINDlyNmNWSTkyYVJJUDY5X1Zpa3BNaVdDUnA2SkNZWHdzUjFNTHB3LXEwTndrZG0?oc=5",
-      "description": "ราคาน้ำมันเชื้อเพลิงวันนี้ 10 พฤศจิกายน: ราคาน้ำมันโลกปรับลดลงอย่างมาก ราคาน้ำมันในประเทศจะปรับตัวในเร็วๆ นี้&nbsp;&nbsp;Vietnam.vn",
+      "title": "ราคาน้ำมันเชื้อเพลิงวันนี้ 10 พฤศจิกายน: ร่วงลงอย่างมาก ราคาน้ำมันดิบเบรนท์ต่ำสุดในรอบ 2 เดือน - Vietnam.vn",
+      "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxQMG5jTV9HQjhLU3pGT2Y5VXM0VGlFWXZwYUk1a3JKVlNQbUlGOWROS0tHaW8zZjFYM1hHM3IzVWhyWVJfbHhGZkFrbTdrYjVURkNkcU1PWC1vUHhwb1pKbkc5NGJNN1ZCSVA2Q0ZEelpqczJHNFlIM2ZydHFFeWQ1RzNGWUUyc3d5Y1Nhajl4dEdZRmlD?oc=5",
+      "description": "ราคาน้ำมันเชื้อเพลิงวันนี้ 10 พฤศจิกายน: ร่วงลงอย่างมาก ราคาน้ำมันดิบเบรนท์ต่ำสุดในรอบ 2 เดือน&nbsp;&nbsp;Vietnam.vn",
       "source": "Vietnam.vn",
-      "pubDate": "2026-11-10T02:53:02+00:00"
+      "pubDate": "2026-11-10T06:49:02+00:00"
     },
     {
-      "title": "แนวโน้มราคาทอง 10 พ.ย. 69 Sideways - Sanook",
-      "link": "https://news.google.com/rss/articles/CBMiTEFVX3lxTFBtRDBnMnJYQy1zMW1QaHZ4c3Fva1NFdUdkaFEtYVF3eTF3VFA4YWNvZXh0N09oak9ZZnNDUVlMOThMNXlhSEVzbjZ3Ykk?oc=5",
-      "description": "แนวโน้มราคาทอง 10 พ.ย. 69 Sideways&nbsp;&nbsp;Sanook",
-      "source": "Sanook",
-      "pubDate": "2026-11-10T02:23:00+00:00"
+      "title": "เจาะต้นทุนราคาน้ำมันเบนซิน-ดีเซล 10 พ.ย. 69 หน้าโรงกลั่น 23.37-33.97 บาท - Thansettakij",
+      "link": "https://news.google.com/rss/articles/CBMiX0FVX3lxTE9lVVRlVC1YM0Jya2UtWlB0QlVYTm9wRDZCZmgwQWlVNHlHeTZyMm1ZdGxodEd1Z1pfT2F0ZDFpNTBHMldOaDhPeDduangwbkJrTWhyRDJydWl0eWJnSEJv?oc=5",
+      "description": "เจาะต้นทุนราคาน้ำมันเบนซิน-ดีเซล 10 พ.ย. 69 หน้าโรงกลั่น 23.37-33.97 บาท&nbsp;&nbsp;Thansettakij",
+      "source": "Thansettakij",
+      "pubDate": "2026-11-10T06:11:00+00:00"
     }
   ],
   "en": [
     {
-      "title": "Pentagon Eyes Unprecedented 75-Year Deal to End China's Rare Earth Stranglehold - Crude Oil Prices Today | OilPrice.com",
-      "link": "https://news.google.com/rss/articles/CBMixAFBVV95cUxOSmxiUkRkOGMwWVRxN1daYVdnd3NwR3VOSWtITHFyLUNza2JVUklENUxjTS1oVFlncVJSNzhkZUM1RnNhNjVFNXUtXzJXMElIVGNfTmdrNDNDVDJsdktKbl9heTJnWTV4SUlSWjIwVmhtX0NmNG4yNjJQd3pWTUpWc3VZRDRVZ2xORlZucnJSZDVrcWk2MGNadUUzX1Nlc2g1LXRvaVhmT1I0bVFheElheVA0eHFNcDVWcjNNSDVFMTRaeVRP0gHKAUFVX3lxTE5OUkNTS2Fna2s3Q1pVaTVxRnJpd0tOWmlpamF2U3RMZlB1ZmNUUjkzWjhob2FzMkhqWU9CNzE4Tkp3TkhiVTVkVEd4V2g0ci05RjVMWEFPbVVrazFHS1lfRHh4eW1UWnRtUXlCcVdEcE1taW9wV215WG5NRlNCTjctZFpUVFNFTXBuQnpoejduQ0thQVlPMUJUQWo1dUJsT3JFc0RXblFFZFRnNWw5ZkZTMzJyYW1uekdXM2xKXzMySkJtWXY4RFBuT0E?oc=5",
-      "description": "Pentagon Eyes Unprecedented 75-Year Deal to End China's Rare Earth Stranglehold&nbsp;&nbsp;Crude Oil Prices Today | OilPrice.com",
+      "title": "Ukrainian Strikes Disrupt 30% of Russia's Oil Refining Capacity - Crude Oil Prices Today | OilPrice.com",
+      "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQeXVablpHbi1lX0lvWnlxQUN3NmNia2FKR0ZCdEJSdmJRVFpPVVRJOVVPZ0JmcUdOVllCaHBrOWtidGpFTUpzN1Z4MFdueVl5akdpQUFKRVBCVkJkYTNndm1QMW11OG5sRXRNM1VRR2ZsTElxc0hzbDFnVXU5VlQ5dml0V1ZGRmNHYS0ydzNWel93QmRZSU9ieC1nWFBoVGpiM0FrLWdVS2J6S2Q5OXNmV3B3TUl3RHRt0gG-AUFVX3lxTE94c3NOU3c4NjF5M1M0RXZKX2V5Q2YyT2VUbFpTX2Nub1AzbU9RVmV6QkNYQUFYbS1vN0R3Nm1LblBnRkhMVExJVEFmcHk3RllTZFNLNlk1U2hQOFNtUkdwT0pUVWp4dXp3d0lWaWJwWHlKVXduc3BRbkVFcEkzbUI4dU1FWUNra0VhcHZYZ3UtNDN2NEl6SnlRQS00UENwSEJUSjZtR0FETjBBX1U2cFZFbVBNQWE1M1d3a3Q5bVE?oc=5",
+      "description": "Ukrainian Strikes Disrupt 30% of Russia's Oil Refining Capacity&nbsp;&nbsp;Crude Oil Prices Today | OilPrice.com",
       "source": "OilPrice.com",
-      "pubDate": "2026-11-10T10:08:12+00:00"
+      "pubDate": "2026-11-10T18:00:00+00:00"
     },
     {
-      "title": "Brent Crude Falls Below $90 for First Time Since August - Crude Oil Prices Today | OilPrice.com",
-      "link": "https://news.google.com/rss/articles/CBMirwFBVV95cUxPVHpRVnZiMHNiRlNlaW1wWFJWOWN3elpyZXlVSjNtcHBnVmtjU3JqUGRsdEFGeVFqVkVKLWZhYXF6TDViZDEtcWhUZUkwWE1RME9BQ3RMd0xsRTlYaHRCS2V1cXpxcjRDbl85d3FiXzg5elFKRk5pdm5lRTdjd3lKNlZIcTdFRjdGUG9OcUdORkh5anBhSG9pQnB5clF1WjM3SXFwQVAza1M1ejJhZ2Nv0gG0AUFVX3lxTFB2dDJ2VHZ5LTVibDh6ZFFMQ0F0Y0RjM21TMzFsU0w5RDJJaGgxUmczeVR3RWFmZEZjaTdXbWNKb2pWM05uU2l2ektUeHo0VHBiOGllZ0ZfSlBSRGV2ZUNDNTdLVWhVUXlSWmxyT2J5UnU3T3l0elFkdHpuUWY4NnN1SnJWdE9Ta3NYYjZsR0RIMlItaWhWV3hmV2tkTXFBc0ZSeXhZYVluZ3VURFRXMzgzZHpCYw?oc=5",
-      "description": "Brent Crude Falls Below $90 for First Time Since August&nbsp;&nbsp;Crude Oil Prices Today | OilPrice.com",
+      "title": "The Truth Behind Iraq's Oil Rebound And The Secret Red Sea Plan - Crude Oil Prices Today | OilPrice.com",
+      "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxONjBfT3habS02ZzBxRmNOcS1pYXVLSVRvSHZWUlc0dUo0RmZUbUZrZUxIX1FfemhFUUY0amNULWxOQ0tnbndMbFBiUFlHdjNUb3BLMHozVm9XNnMxak9aY1ZBMkFVMWxTWE1YS1lKSnF6RzNkajJZUnBBTHNRT0F3VnA0TmJEMXI1SnktelJfZUxiSklXZEIyWXFpYUdyaXpBdjA3aXItMnrSAa4BQVVfeXFMTXd0T0U5TUtyZDJhYUhWZTVUUy1ydmpxcTY3SzRKR1ItRFUwSksxOXlYNTFKd05sbUM5U183aWFJZ1lsanQzYTljanJEUmtZeXhERVNheWduTUxlQmJnanZXeS1uMUxUSTlhZzZxQzQtMmotTnBNVTVkb0M3WEJ0NnN3SHBCTThtT25GSXBYR0JnZ05BZExDMlUwWVJ4aUZXc0RrUzBaVTRUYTc5RDVB?oc=5",
+      "description": "The Truth Behind Iraq's Oil Rebound And The Secret Red Sea Plan&nbsp;&nbsp;Crude Oil Prices Today | OilPrice.com",
       "source": "OilPrice.com",
-      "pubDate": "2026-11-10T10:06:35+00:00"
-    },
-    {
-      "title": "Oil Extends Drop as Trump Says Further Iran Strikes Unnecessary - Bloomberg.com",
-      "link": "https://news.google.com/rss/articles/CBMingFBVV95cUxQaXNXQU9UR20zbU83d0JzZ2cwSGhBbVBoNXZ1ZHFhUVAwRlpxR0FPai1jUWtxaWlBb0tKTkJBMmdKTVdrU3JuZjdXM3dBZ3ZuTk5OdDRSOWpELTIyZkpCMzNSNUlZSTFNb3Qxck5WVTExXzNvbVNmWkFtTWJObWhoUW9BelliQTg5MUFaWUpSYmhpeDRfaUNDc2taZHBRdw?oc=5",
-      "description": "Oil Extends Drop as Trump Says Further Iran Strikes Unnecessary&nbsp;&nbsp;Bloomberg.com",
-      "source": "Bloomberg",
-      "pubDate": "2026-11-10T04:22:00+00:00"
+      "pubDate": "2026-11-10T18:00:00+00:00"
     },
     {
       "title": "Oil falls as Trump downplays prospect of escalation with Iran - CNBC",
@@ -100,6 +93,13 @@
       "description": "Oil Tanker Rates Drop, Making Long-Haul Crude Trades Attractive&nbsp;&nbsp;Bloomberg.com",
       "source": "Bloomberg",
       "pubDate": "2026-11-09T21:07:17+00:00"
+    },
+    {
+      "title": "Europe’s Gas Storage Problems Seen Lasting Well Beyond Winter - Bloomberg.com",
+      "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxOR1ljZU5leVpJN0d4Zm5uWEZ2dTBXb1M3aTNpeDVIR1haV0VTU2JSaDhXeUk2MEQ4MG9mdVZ1Y195b2Zub3k5ZFdHUEpJVi1WdlYzVEdwUXItSnd6ZzNIYU5IOXNLMTdZMmtORzh3SlZ0bmY4b2xrTy1oS0N0UDBfc3BXcGswZVliUl9aMFVKU3R5Vk44MHVqT2xmTkd4Ti16NkVpcXUyOU0xZ2JnblU4bjhPX3cxUQ?oc=5",
+      "description": "Europe’s Gas Storage Problems Seen Lasting Well Beyond Winter&nbsp;&nbsp;Bloomberg.com",
+      "source": "Bloomberg",
+      "pubDate": "2026-11-09T12:47:37+00:00"
     }
   ]
 }
